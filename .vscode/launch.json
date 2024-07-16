@@ -7,22 +7,70 @@
         {
             "type": "cppdbg",
             "request": "launch",
-            "name": "Debug",
+            "name": "gdb-observer-cli",
             "program": "${workspaceFolder}/${defaultBuildTask}/bin/observer",
             "args": ["-f", "${workspaceFolder}/etc/observer.ini", "-P", "cli"],
-            "cwd": "${workspaceFolder}/${defaultBuildTask}/",
-            "internalConsoleOptions": "openOnSessionStart",
-            "osx": {
-                "MIMode": "lldb",
-                "externalConsole":true
-            }
+            "cwd": "${workspaceFolder}/${defaultBuildTask}/bin",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+        },
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "gdb-observer-mysql",
+            "program": "${workspaceFolder}/${defaultBuildTask}/bin/observer",
+            "args": ["-f", "${workspaceFolder}/etc/observer.ini", "-P", "mysql"],
+            "cwd": "${workspaceFolder}/${defaultBuildTask}/bin",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+        },
+        {
+            "type": "cppdbg",
+            "request": "launch",
+            "name": "gdb-observer-mvcc",
+            "program": "${workspaceFolder}/${defaultBuildTask}/bin/observer",
+            "args": ["-f", "${workspaceFolder}/etc/observer.ini", "-t", "mvcc"],
+            "cwd": "${workspaceFolder}/${defaultBuildTask}/bin",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "LLDB",
+            "name": "lldb-observer-cli",
             "program": "${workspaceFolder}/${defaultBuildTask}/bin/observer",
             "args": ["-f", "${workspaceFolder}/etc/observer.ini", "-P", "cli"],
+            "cwd": "${workspaceFolder}/${defaultBuildTask}/"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "lldb-observer-mysql",
+            "program": "${workspaceFolder}/${defaultBuildTask}/bin/observer",
+            "args": ["-f", "${workspaceFolder}/etc/observer.ini", "-P", "mysql"],
+            "cwd": "${workspaceFolder}/${defaultBuildTask}/"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "lldb-observer-mvcc",
+            "program": "${workspaceFolder}/${defaultBuildTask}/bin/observer",
+            "args": ["-f", "${workspaceFolder}/etc/observer.ini", "-t", "mvcc"],
             "cwd": "${workspaceFolder}/${defaultBuildTask}/"
         }
     ]
