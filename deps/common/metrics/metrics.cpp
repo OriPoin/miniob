@@ -9,149 +9,151 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 //
-// Created by Longda on 2021/4/19.
+// Created by int64_tda on 2021/4/19.
 //
 
 #include "common/metrics/metrics.h"
+#include "common/metrics/timer_snapshot.h"
 #include "common/lang/mutex.h"
+#include <sys/types.h>
 
 namespace common {
 Meter::Meter()
 {
   struct timeval start_time;
-  gettimeofday(&start_time, NULL);
+  gettimeofday(&start_time, nullptr);
 
   snapshot_tick_ = start_time.tv_sec * 1000000 + start_time.tv_usec;
-  value_.store(0l);
+  value_.store(0L);
 }
 
 Meter::~Meter()
 {
-  if (snapshot_value_ != NULL) {
+  if (snapshot_value_ != nullptr) {
     delete snapshot_value_;
-    snapshot_value_ = NULL;
+    snapshot_value_ = nullptr;
   }
 }
 
-void Meter::inc(long increase) { value_.fetch_add(increase); }
+void Meter::inc(int64_t increase) { value_.fetch_add(increase); }
 
-void Meter::inc() { inc(1l); }
+void Meter::inc() { inc(1L); }
 
 void Meter::snapshot()
 {
   // lock here
 
   struct timeval now;
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
 
-  long now_tick = now.tv_sec * 1000000 + now.tv_usec;
+  u_int64_t now_tick = now.tv_sec * 1000000 + now.tv_usec;
 
-  double temp_value = ((double)value_.exchange(0l)) / ((now_tick - snapshot_tick_) / 1000000);
+  double temp_value = (static_cast<double>(value_.exchange(0L))) / ((now_tick - snapshot_tick_) / 1000000.0);
   snapshot_tick_    = now_tick;
 
-  if (snapshot_value_ == NULL) {
+  if (snapshot_value_ == nullptr) {
     snapshot_value_ = new SnapshotBasic<double>();
   }
-  ((SnapshotBasic<double> *)snapshot_value_)->setValue(temp_value);
+  (static_cast<SnapshotBasic<double> *>(snapshot_value_))->setValue(temp_value);
 }
 
 SimpleTimer::~SimpleTimer()
 {
-  if (snapshot_value_ != NULL) {
+  if (snapshot_value_ != nullptr) {
     delete snapshot_value_;
-    snapshot_value_ = NULL;
+    snapshot_value_ = nullptr;
   }
 }
 
-void SimpleTimer::inc(long increase)
+void SimpleTimer::inc(int64_t increase)
 {
   value_.fetch_add(increase);
   times_.fetch_add(1);
 }
 
-void SimpleTimer::update(long one) { inc(one); }
+void SimpleTimer::update(int64_t one) { inc(one); }
 
 void SimpleTimer::snapshot()
 {
 
   // lock here
   struct timeval now;
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
 
-  long now_tick = now.tv_sec * 1000000 + now.tv_usec;
+  int64_t now_tick = now.tv_sec * 1000000 + now.tv_usec;
 
-  long value_snapshot = value_.exchange(0l);
-  long times_snapshot = times_.exchange(0l);
+  int64_t value_snapshot = value_.exchange(0L);
+  int64_t times_snapshot = times_.exchange(0L);
 
   double tps  = 0;
   double mean = 0;
 
   if (times_snapshot > 0) {
-    tps  = ((double)times_snapshot) / ((now_tick - snapshot_tick_) / 1000000);
-    mean = ((double)value_snapshot) / times_snapshot;
+    tps  = (static_cast<double>(times_snapshot)) / ((now_tick - snapshot_tick_) / 1000000.0);
+    mean = (static_cast<double>(value_snapshot)) / times_snapshot;
   }
 
   snapshot_tick_ = now_tick;
 
-  if (snapshot_value_ == NULL) {
+  if (snapshot_value_ == nullptr) {
     snapshot_value_ = new SimplerTimerSnapshot();
   }
-  ((SimplerTimerSnapshot *)snapshot_value_)->setValue(mean, tps);
+  (static_cast<SimplerTimerSnapshot *>(snapshot_value_))->setValue(mean, tps);
 }
 
 Histogram::Histogram(RandomGenerator &random) : UniformReservoir(random) {}
 
 Histogram::Histogram(RandomGenerator &random, size_t size) : UniformReservoir(random, size) {}
 
-Histogram::~Histogram() {}
+Histogram::~Histogram() = default;
 
 void Histogram::snapshot() { UniformReservoir::snapshot(); }
 
 Timer::Timer(RandomGenerator &random) : UniformReservoir(random)
 {
   struct timeval start_time;
-  gettimeofday(&start_time, NULL);
+  gettimeofday(&start_time, nullptr);
 
   snapshot_tick_ = start_time.tv_sec * 1000000 + start_time.tv_usec;
-  value_.store(0l);
+  value_.store(0L);
 }
 
 Timer::Timer(RandomGenerator &random, size_t size) : UniformReservoir(random, size)
 {
   struct timeval start_time;
-  gettimeofday(&start_time, NULL);
+  gettimeofday(&start_time, nullptr);
 
   snapshot_tick_ = start_time.tv_sec * 1000000 + start_time.tv_usec;
-  value_.store(0l);
+  value_.store(0L);
 }
 
 Timer::~Timer()
 {
-  if (snapshot_value_ == NULL) {
+  if (snapshot_value_ == nullptr) {
     delete snapshot_value_;
-    snapshot_value_ = NULL;
+    snapshot_value_ = nullptr;
   }
 }
 
 void Timer::update(double ms)
 {
   UniformReservoir::update(ms);
-  value_.fetch_add(1l);
+  value_.fetch_add(1L);
 }
 
 void Timer::snapshot()
 {
-  if (snapshot_value_ == NULL) {
+  if (snapshot_value_ == nullptr) {
     snapshot_value_ = new TimerSnapshot();
   }
-  TimerSnapshot *timer_snapshot = (TimerSnapshot *)snapshot_value_;
+  auto *timer_snapshot = static_cast<TimerSnapshot *>(snapshot_value_);
 
   struct timeval now;
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
 
-  long now_tick = now.tv_sec * 1000000 + now.tv_usec;
+  int64_t now_tick = now.tv_sec * 1000000 + now.tv_usec;
 
-  double tps     = ((double)value_.exchange(0l)) / ((now_tick - snapshot_tick_) / 1000000);
+  double tps     = (static_cast<double>(value_.exchange(0L))) / ((now_tick - snapshot_tick_) / 1000000.0);
   snapshot_tick_ = now_tick;
 
   MUTEX_LOCK(&mutex);
@@ -176,7 +178,7 @@ TimerStat::~TimerStat()
 void TimerStat::start()
 {
   struct timeval now;
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
 
   start_tick_ = now.tv_sec * 1000000 + now.tv_usec;
 }
@@ -184,7 +186,7 @@ void TimerStat::start()
 void TimerStat::end()
 {
   struct timeval now;
-  gettimeofday(&now, NULL);
+  gettimeofday(&now, nullptr);
 
   end_tick_ = now.tv_sec * 1000000 + now.tv_usec;
 }

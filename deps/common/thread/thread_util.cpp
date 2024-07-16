@@ -13,7 +13,7 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <pthread.h>
-#include <stdio.h>
+#include <cstdio>
 
 namespace common {
 

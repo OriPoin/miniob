@@ -17,9 +17,9 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/string.h"
 #include "common/lang/memory.h"
 #include "sql/operator/physical_operator.h"
+#include "sql/stmt/stmt.h"
 
 class SessionEvent;
-class Stmt;
 class ParsedSqlNode;
 
 /**
@@ -28,7 +28,7 @@ class ParsedSqlNode;
 class SQLStageEvent
 {
 public:
-  SQLStageEvent(SessionEvent *event, const string &sql);
+  SQLStageEvent(SessionEvent *event, string sql);
   virtual ~SQLStageEvent() noexcept;
 
   SessionEvent *session_event() const { return session_event_; }

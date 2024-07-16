@@ -12,8 +12,6 @@ See the Mulan PSL v2 for more details. */
 // Created by wangyunlai on 2024/01/31
 //
 
-#include <span>
-
 #include "gtest/gtest.h"
 #include "storage/clog/log_entry.h"
 
@@ -25,8 +23,8 @@ TEST(LogHeader, to_string)
   header.lsn       = 1;
   header.size      = 2;
   header.module_id = 3;
-
-  header.to_string();
+  stringstream ss;
+  ss << header.to_string();
 }
 
 TEST(LogEntry, init)
@@ -54,8 +52,8 @@ TEST(LogEntry, size)
   ASSERT_EQ(entry.total_size(), LogHeader::SIZE);
 
   // size is too large
-  long long int size = LogEntry::max_payload_size() + 1;
-  vector<char>  data2(size);
+  int64_t      size = LogEntry::max_payload_size() + 1;
+  vector<char> data2(size);
   ASSERT_NE(entry.init(1, LogModule::Id::BPLUS_TREE, std::move(data2)), RC::SUCCESS);
 }
 

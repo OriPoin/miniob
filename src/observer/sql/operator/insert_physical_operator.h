@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/operator/physical_operator.h"
-#include "sql/parser/parse.h"
 #include <vector>
 
 class InsertStmt;
@@ -29,9 +28,9 @@ class InsertPhysicalOperator : public PhysicalOperator
 public:
   InsertPhysicalOperator(Table *table, std::vector<Value> &&values);
 
-  virtual ~InsertPhysicalOperator() = default;
+  ~InsertPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::INSERT; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::INSERT; }
 
   RC open(Trx *trx) override;
   RC next() override;

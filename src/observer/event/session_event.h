@@ -28,7 +28,7 @@ class Communicator;
 class SessionEvent
 {
 public:
-  SessionEvent(Communicator *client);
+  SessionEvent(Communicator *comm);
   virtual ~SessionEvent();
 
   Communicator *get_communicator() const;

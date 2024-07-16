@@ -15,8 +15,7 @@ See the Mulan PSL v2 for more details. */
 #ifndef __COMMON_METRICS_HISTOGRAM_SNAPSHOT_H_
 #define __COMMON_METRICS_HISTOGRAM_SNAPSHOT_H_
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
 
 #include <string>
 #include <vector>
@@ -30,9 +29,8 @@ class HistogramSnapShot : public Snapshot
 public:
   HistogramSnapShot();
   explicit HistogramSnapShot(const std::vector<double> &collection);
-  virtual ~HistogramSnapShot();
+  ~HistogramSnapShot() override;
 
-public:
   void set_collection(const std::vector<double> &collection);
 
   /**
@@ -46,7 +44,7 @@ public:
   /**
    * Returns the size of collection in the snapshot
    */
-  size_t size() const;
+  [[nodiscard]] size_t size() const;
 
   /**
    * Returns 50th_percentile.
@@ -65,7 +63,7 @@ public:
 
   const std::vector<double> &get_values();
 
-  std::string to_string();
+  std::string to_string() override;
 
 protected:
   std::vector<double> data_;

@@ -28,8 +28,8 @@ class LogicalOperator;
 class ComparisonSimplificationRule : public ExpressionRewriteRule
 {
 public:
-  ComparisonSimplificationRule()          = default;
-  virtual ~ComparisonSimplificationRule() = default;
+  ComparisonSimplificationRule()           = default;
+  ~ComparisonSimplificationRule() override = default;
 
   RC rewrite(std::unique_ptr<Expression> &expr, bool &change_made) override;
 

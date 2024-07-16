@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <errno.h>
+#include <cerrno>
 #include <fstream>
 #include <iostream>
 #include <memory>

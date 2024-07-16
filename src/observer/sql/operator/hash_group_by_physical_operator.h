@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/operator/group_by_physical_operator.h"
-#include "sql/expr/composite_tuple.h"
 
 /**
  * @brief Group By Hash 方式物理算子
@@ -30,9 +29,9 @@ public:
   HashGroupByPhysicalOperator(
       std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<Expression *> &&expressions);
 
-  virtual ~HashGroupByPhysicalOperator() = default;
+  ~HashGroupByPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::HASH_GROUP_BY; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::HASH_GROUP_BY; }
 
   RC open(Trx *trx) override;
   RC next() override;
@@ -46,10 +45,8 @@ private:
   /// 聚合出来的一组数据
   using GroupType = std::tuple<ValueListTuple, GroupValueType>;
 
-private:
   RC find_group(const Tuple &child_tuple, GroupType *&found_group);
 
-private:
   std::vector<std::unique_ptr<Expression>> group_by_exprs_;
 
   /// 一组一条数据

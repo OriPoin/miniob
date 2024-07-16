@@ -57,15 +57,15 @@ public:
   /**
    * @brief 当前缓冲区中有多少字节的日志
    */
-  int64_t bytes() const;
+  [[nodiscard]] int64_t bytes() const;
 
   /**
    * @brief 当前缓冲区中有多少条日志
    */
-  int32_t entry_number() const;
+  [[nodiscard]] int32_t entry_number() const;
 
-  LSN current_lsn() const { return current_lsn_.load(); }
-  LSN flushed_lsn() const { return flushed_lsn_.load(); }
+  [[nodiscard]] LSN current_lsn() const { return current_lsn_.load(); }
+  [[nodiscard]] LSN flushed_lsn() const { return flushed_lsn_.load(); }
 
 private:
   mutex           mutex_;  /// 当前数据结构一定会在多线程中访问，所以强制使用有效的锁，而不是有条件生效的common::Mutex

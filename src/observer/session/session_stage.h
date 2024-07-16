@@ -42,10 +42,8 @@ public:
   SessionStage() = default;
   virtual ~SessionStage();
 
-public:
-  void handle_request2(SessionEvent *event);
+  static void handle_request2(SessionEvent *event);
 
-public:
   void handle_request(SessionEvent *event);
   RC   handle_sql(SQLStageEvent *sql_event);
 

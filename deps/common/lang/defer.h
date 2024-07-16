@@ -21,7 +21,7 @@ namespace common {
 class DeferHelper
 {
 public:
-  DeferHelper(const function<void()> defer) : defer_(std::move(defer)) {}
+  explicit DeferHelper(const function<void()> &defer) : defer_(std::move(defer)) {}
 
   ~DeferHelper()
   {

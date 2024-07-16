@@ -11,6 +11,7 @@ See the Mulan PSL v2 for more details. */
 //
 // Created by Longda on 2021/4/16.
 //
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "gtest/gtest.h"
@@ -23,14 +24,14 @@ using namespace common;
 
 int main()
 {
-  long long pid = (long long)getpid();
+  auto pid = static_cast<u_int64_t>(getpid());
 
   const char *programName = "test";
   writePidFile(programName);
 
   string pidFile = getPidPath();
 
-  char  *p    = NULL;
+  char  *p    = nullptr;
   size_t size = 0;
   readFromFile(pidFile, p, size);
 

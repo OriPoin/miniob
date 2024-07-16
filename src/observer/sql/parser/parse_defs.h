@@ -302,7 +302,6 @@ public:
   ExplainSqlNode      explain;
   SetVariableSqlNode  set_variable;
 
-public:
   ParsedSqlNode();
   explicit ParsedSqlNode(SqlCommandFlag flag);
 };

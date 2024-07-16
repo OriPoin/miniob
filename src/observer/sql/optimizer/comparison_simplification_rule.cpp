@@ -24,7 +24,7 @@ RC ComparisonSimplificationRule::rewrite(std::unique_ptr<Expression> &expr, bool
   if (expr->type() == ExprType::COMPARISON) {
     Value value;
 
-    ComparisonExpr *cmp_expr = static_cast<ComparisonExpr *>(expr.get());
+    auto *cmp_expr = static_cast<ComparisonExpr *>(expr.get());
 
     RC sub_rc = cmp_expr->try_get_value(value);
     if (sub_rc == RC::SUCCESS) {

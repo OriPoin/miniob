@@ -24,8 +24,8 @@ See the Mulan PSL v2 for more details. */
 class PredicateRewriteRule : public RewriteRule
 {
 public:
-  PredicateRewriteRule()          = default;
-  virtual ~PredicateRewriteRule() = default;
+  PredicateRewriteRule()           = default;
+  ~PredicateRewriteRule() override = default;
 
   RC rewrite(std::unique_ptr<LogicalOperator> &oper, bool &change_made) override;
 };

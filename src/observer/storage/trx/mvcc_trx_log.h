@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "common/rc.h"
-#include "common/types.h"
 #include "common/lang/string.h"
 #include "common/lang/unordered_map.h"
 #include "storage/record/record.h"
@@ -43,15 +42,14 @@ public:
     ROLLBACK        ///< 回滚事务
   };
 
-public:
-  MvccTrxLogOperation(Type type) : type_(type) {}
+  explicit MvccTrxLogOperation(Type type) : type_(type) {}
   explicit MvccTrxLogOperation(int32_t type) : type_(static_cast<Type>(type)) {}
   ~MvccTrxLogOperation() = default;
 
-  Type    type() const { return type_; }
-  int32_t index() const { return static_cast<int32_t>(type_); }
+  [[nodiscard]] Type    type() const { return type_; }
+  [[nodiscard]] int32_t index() const { return static_cast<int32_t>(type_); }
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 
 private:
   Type type_;
@@ -68,7 +66,7 @@ struct MvccTrxLogHeader
 
   static const int32_t SIZE;  ///< 头部大小
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 };
 
 /**
@@ -84,7 +82,7 @@ struct MvccTrxRecordLogEntry
 
   static const int32_t SIZE;  ///< 日志大小
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 };
 
 /**
@@ -99,7 +97,7 @@ struct MvccTrxCommitLogEntry
 
   static const int32_t SIZE;
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 };
 
 /**
@@ -109,7 +107,7 @@ struct MvccTrxCommitLogEntry
 class MvccTrxLogHandler final
 {
 public:
-  MvccTrxLogHandler(LogHandler &log_handler);
+  explicit MvccTrxLogHandler(LogHandler &log_handler);
   ~MvccTrxLogHandler();
 
   /**
@@ -146,7 +144,7 @@ class MvccTrxLogReplayer final : public LogReplayer
 {
 public:
   MvccTrxLogReplayer(Db &db, MvccTrxKit &trx_kit, LogHandler &log_handler);
-  virtual ~MvccTrxLogReplayer() = default;
+  ~MvccTrxLogReplayer() override = default;
 
   //! @copydoc LogReplayer::replay
   RC replay(const LogEntry &entry) override;

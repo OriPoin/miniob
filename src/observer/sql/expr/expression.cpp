@@ -35,7 +35,7 @@ bool FieldExpr::equal(const Expression &other) const
   return table_name() == other_field_expr.table_name() && field_name() == other_field_expr.field_name();
 }
 
-// TODO: 在进行表达式计算时，`chunk` 包含了所有列，因此可以通过 `field_id` 获取到对应列。
+// TODO(unknown): 在进行表达式计算时，`chunk` 包含了所有列，因此可以通过 `field_id` 获取到对应列。
 // 后续可以优化成在 `FieldExpr` 中存储 `chunk` 中某列的位置信息。
 RC FieldExpr::get_column(Chunk &chunk, Column &column)
 {
@@ -59,13 +59,13 @@ bool ValueExpr::equal(const Expression &other) const
   return value_.compare(other_value_expr.get_value()) == 0;
 }
 
-RC ValueExpr::get_value(const Tuple &tuple, Value &value) const
+RC ValueExpr::get_value(const Tuple & /*tuple*/, Value &value) const
 {
   value = value_;
   return RC::SUCCESS;
 }
 
-RC ValueExpr::get_column(Chunk &chunk, Column &column)
+RC ValueExpr::get_column(Chunk & /*chunk*/, Column &column)
 {
   column.init(value_);
   return RC::SUCCESS;
@@ -75,7 +75,7 @@ RC ValueExpr::get_column(Chunk &chunk, Column &column)
 CastExpr::CastExpr(unique_ptr<Expression> child, AttrType cast_type) : child_(std::move(child)), cast_type_(cast_type)
 {}
 
-CastExpr::~CastExpr() {}
+CastExpr::~CastExpr() = default;
 
 RC CastExpr::cast(const Value &value, Value &cast_value) const
 {
@@ -124,7 +124,7 @@ ComparisonExpr::ComparisonExpr(CompOp comp, unique_ptr<Expression> left, unique_
     : comp_(comp), left_(std::move(left)), right_(std::move(right))
 {}
 
-ComparisonExpr::~ComparisonExpr() {}
+ComparisonExpr::~ComparisonExpr() = default;
 
 RC ComparisonExpr::compare_value(const Value &left, const Value &right, bool &result) const
 {
@@ -162,8 +162,8 @@ RC ComparisonExpr::compare_value(const Value &left, const Value &right, bool &re
 RC ComparisonExpr::try_get_value(Value &cell) const
 {
   if (left_->type() == ExprType::VALUE && right_->type() == ExprType::VALUE) {
-    ValueExpr *  left_value_expr  = static_cast<ValueExpr *>(left_.get());
-    ValueExpr *  right_value_expr = static_cast<ValueExpr *>(right_.get());
+    auto        *left_value_expr  = static_cast<ValueExpr *>(left_.get());
+    auto        *right_value_expr = static_cast<ValueExpr *>(right_.get());
     const Value &left_cell        = left_value_expr->get_value();
     const Value &right_cell       = right_value_expr->get_value();
 
@@ -230,7 +230,7 @@ RC ComparisonExpr::eval(Chunk &chunk, std::vector<uint8_t> &select)
   } else if (left_column.attr_type() == AttrType::FLOATS) {
     rc = compare_column<float>(left_column, right_column, select);
   } else {
-    // TODO: support string compare
+    // TODO(unknown): support string compare
     LOG_WARN("unsupported data type %d", left_column.attr_type());
     return RC::INTERNAL;
   }
@@ -245,13 +245,17 @@ RC ComparisonExpr::compare_column(const Column &left, const Column &right, std::
   bool left_const  = left.column_type() == Column::Type::CONSTANT_COLUMN;
   bool right_const = right.column_type() == Column::Type::CONSTANT_COLUMN;
   if (left_const && right_const) {
-    compare_result<T, true, true>((T *)left.data(), (T *)right.data(), left.count(), result, comp_);
+    compare_result<T, true, true>(
+        reinterpret_cast<T *>(left.data()), reinterpret_cast<T *>(right.data()), left.count(), result, comp_);
   } else if (left_const && !right_const) {
-    compare_result<T, true, false>((T *)left.data(), (T *)right.data(), right.count(), result, comp_);
+    compare_result<T, true, false>(
+        reinterpret_cast<T *>(left.data()), reinterpret_cast<T *>(right.data()), right.count(), result, comp_);
   } else if (!left_const && right_const) {
-    compare_result<T, false, true>((T *)left.data(), (T *)right.data(), left.count(), result, comp_);
+    compare_result<T, false, true>(
+        reinterpret_cast<T *>(left.data()), reinterpret_cast<T *>(right.data()), left.count(), result, comp_);
   } else {
-    compare_result<T, false, false>((T *)left.data(), (T *)right.data(), left.count(), result, comp_);
+    compare_result<T, false, false>(
+        reinterpret_cast<T *>(left.data()), reinterpret_cast<T *>(right.data()), left.count(), result, comp_);
   }
   return rc;
 }
@@ -305,7 +309,7 @@ bool ArithmeticExpr::equal(const Expression &other) const
   if (type() != other.type()) {
     return false;
   }
-  auto &other_arith_expr = static_cast<const ArithmeticExpr &>(other);
+  const auto &other_arith_expr = static_cast<const ArithmeticExpr &>(other);
   return arithmetic_type_ == other_arith_expr.arithmetic_type() && left_->equal(*other_arith_expr.left_) &&
          right_->equal(*other_arith_expr.right_);
 }
@@ -398,54 +402,71 @@ RC ArithmeticExpr::execute_calc(
   switch (type) {
     case Type::ADD: {
       if (attr_type == AttrType::INTS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, AddOperator>(
-            (int *)left.data(), (int *)right.data(), (int *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, AddOperator>(reinterpret_cast<int *>(left.data()),
+            reinterpret_cast<int *>(right.data()),
+            reinterpret_cast<int *>(result.data()),
+            result.capacity());
       } else if (attr_type == AttrType::FLOATS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, AddOperator>(
-            (float *)left.data(), (float *)right.data(), (float *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, AddOperator>(reinterpret_cast<float *>(left.data()),
+            reinterpret_cast<float *>(right.data()),
+            reinterpret_cast<float *>(result.data()),
+            result.capacity());
       } else {
         rc = RC::UNIMPLENMENT;
       }
     } break;
     case Type::SUB:
       if (attr_type == AttrType::INTS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, SubtractOperator>(
-            (int *)left.data(), (int *)right.data(), (int *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, SubtractOperator>(reinterpret_cast<int *>(left.data()),
+            reinterpret_cast<int *>(right.data()),
+            reinterpret_cast<int *>(result.data()),
+            result.capacity());
       } else if (attr_type == AttrType::FLOATS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, SubtractOperator>(
-            (float *)left.data(), (float *)right.data(), (float *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, SubtractOperator>(reinterpret_cast<float *>(left.data()),
+            reinterpret_cast<float *>(right.data()),
+            reinterpret_cast<float *>(result.data()),
+            result.capacity());
       } else {
         rc = RC::UNIMPLENMENT;
       }
       break;
     case Type::MUL:
       if (attr_type == AttrType::INTS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, MultiplyOperator>(
-            (int *)left.data(), (int *)right.data(), (int *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, MultiplyOperator>(reinterpret_cast<int *>(left.data()),
+            reinterpret_cast<int *>(right.data()),
+            reinterpret_cast<int *>(result.data()),
+            result.capacity());
       } else if (attr_type == AttrType::FLOATS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, MultiplyOperator>(
-            (float *)left.data(), (float *)right.data(), (float *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, MultiplyOperator>(reinterpret_cast<float *>(left.data()),
+            reinterpret_cast<float *>(right.data()),
+            reinterpret_cast<float *>(result.data()),
+            result.capacity());
       } else {
         rc = RC::UNIMPLENMENT;
       }
       break;
     case Type::DIV:
       if (attr_type == AttrType::INTS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, DivideOperator>(
-            (int *)left.data(), (int *)right.data(), (int *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, int, DivideOperator>(reinterpret_cast<int *>(left.data()),
+            reinterpret_cast<int *>(right.data()),
+            reinterpret_cast<int *>(result.data()),
+            result.capacity());
       } else if (attr_type == AttrType::FLOATS) {
-        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, DivideOperator>(
-            (float *)left.data(), (float *)right.data(), (float *)result.data(), result.capacity());
+        binary_operator<LEFT_CONSTANT, RIGHT_CONSTANT, float, DivideOperator>(reinterpret_cast<float *>(left.data()),
+            reinterpret_cast<float *>(right.data()),
+            reinterpret_cast<float *>(result.data()),
+            result.capacity());
       } else {
         rc = RC::UNIMPLENMENT;
       }
       break;
     case Type::NEGATIVE:
       if (attr_type == AttrType::INTS) {
-        unary_operator<LEFT_CONSTANT, int, NegateOperator>((int *)left.data(), (int *)result.data(), result.capacity());
+        unary_operator<LEFT_CONSTANT, int, NegateOperator>(
+            reinterpret_cast<int *>(left.data()), reinterpret_cast<int *>(result.data()), result.capacity());
       } else if (attr_type == AttrType::FLOATS) {
         unary_operator<LEFT_CONSTANT, float, NegateOperator>(
-            (float *)left.data(), (float *)result.data(), result.capacity());
+            reinterpret_cast<float *>(left.data()), reinterpret_cast<float *>(result.data()), result.capacity());
       } else {
         rc = RC::UNIMPLENMENT;
       }
@@ -580,7 +601,7 @@ bool AggregateExpr::equal(const Expression &other) const
   if (other.type() != type()) {
     return false;
   }
-  const AggregateExpr &other_aggr_expr = static_cast<const AggregateExpr &>(other);
+  const auto &other_aggr_expr = static_cast<const AggregateExpr &>(other);
   return aggregate_type_ == other_aggr_expr.aggregate_type() && child_->equal(*other_aggr_expr.child());
 }
 

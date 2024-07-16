@@ -12,14 +12,11 @@ See the Mulan PSL v2 for more details. */
 // Created by longda on 2022
 //
 
-#include <iostream>
 #include <list>
 #include <filesystem>
 
 #include "common/log/log.h"
 #include "common/lang/memory.h"
-#include "common/lang/filesystem.h"
-#include "sql/parser/parse_defs.h"
 #include "storage/buffer/disk_buffer_pool.h"
 #include "storage/index/bplus_tree.h"
 #include "storage/clog/vacuous_log_handler.h"
@@ -58,7 +55,7 @@ void test_insert(BplusTreeHandler *handler)
       } else {
         LOG_INFO("Insert %d. rid=%s", i, rid.to_string().c_str());
       }
-      rc = handler->insert_entry((const char *)&i, &rid);
+      rc = handler->insert_entry(reinterpret_cast<const char *>(&i), &rid);
       ASSERT_EQ(RC::SUCCESS, rc);
       handler->print_tree();
       ASSERT_EQ(true, handler->validate_tree());
@@ -79,7 +76,7 @@ void test_insert(BplusTreeHandler *handler)
       } else {
         LOG_INFO("Insert %d. rid=%s", i, rid.to_string().c_str());
       }
-      rc = handler->insert_entry((const char *)&i, &rid);
+      rc = handler->insert_entry(reinterpret_cast<const char *>(&i), &rid);
       ASSERT_EQ(RC::SUCCESS, rc);
       handler->print_tree();
       ASSERT_EQ(true, handler->validate_tree());
@@ -100,7 +97,7 @@ void test_insert(BplusTreeHandler *handler)
       } else {
         LOG_INFO("Insert %d. rid=%s", i, rid.to_string().c_str());
       }
-      rc = handler->insert_entry((const char *)&i, &rid);
+      rc = handler->insert_entry(reinterpret_cast<const char *>(&i), &rid);
       ASSERT_EQ(RC::SUCCESS, rc);
       ASSERT_EQ(true, handler->validate_tree());
     }
@@ -123,7 +120,7 @@ void test_insert(BplusTreeHandler *handler)
     } else {
       LOG_INFO("check duplicate Insert %d. rid=%s. TIMES=%d", i, rid.to_string().c_str(), TIMES);
     }
-    rc    = handler->insert_entry((const char *)&i, &rid);
+    rc    = handler->insert_entry(reinterpret_cast<const char *>(&i), &rid);
     int t = i % TIMES;
     if (t == 0 || t == 1 || t == 2) {
       if (rc != RC::RECORD_DUPLICATE_KEY) {
@@ -154,7 +151,7 @@ void test_get(BplusTreeHandler *handler)
     }
 
     rids.clear();
-    RC rc = handler->get_entry((const char *)&i, 4, rids);
+    RC rc = handler->get_entry(reinterpret_cast<const char *>(&i), 4, rids);
 
     ASSERT_EQ(RC::SUCCESS, rc);
     ASSERT_EQ(1, rids.size());
@@ -185,7 +182,7 @@ void test_delete(BplusTreeHandler *handler)
         LOG_INFO("Begin to delete entry of index,  i=%d, rid: %s", i, rid.to_string().c_str());
       }
 
-      rc = handler->delete_entry((const char *)&i, &rid);
+      rc = handler->delete_entry(reinterpret_cast<const char *>(&i), &rid);
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to delete entry. i=%d, rid=%s", i, rid.to_string().c_str());
       }
@@ -210,7 +207,7 @@ void test_delete(BplusTreeHandler *handler)
       } else {
         LOG_INFO("Begin to delete entry of index,  rid: %s", rid.to_string().c_str());
       }
-      rc = handler->delete_entry((const char *)&i, &rid);
+      rc = handler->delete_entry(reinterpret_cast<const char *>(&i), &rid);
 
       ASSERT_EQ(true, handler->validate_tree());
       ASSERT_EQ(RC::SUCCESS, rc);
@@ -229,7 +226,7 @@ void test_delete(BplusTreeHandler *handler)
       LOG_INFO("Begin to get entry of index, i=%d, rid: %s", i, rid.to_string().c_str());
     }
     rids.clear();
-    rc = handler->get_entry((const char *)&i, 4, rids);
+    rc = handler->get_entry(reinterpret_cast<const char *>(&i), 4, rids);
     ASSERT_EQ(RC::SUCCESS, rc);
     int t = i % TIMES;
     if (t == 0 || t == 1) {
@@ -263,7 +260,7 @@ void test_delete(BplusTreeHandler *handler)
       } else {
         LOG_INFO("Begin to delete entry of index,  rid: %s", rid.to_string().c_str());
       }
-      rc = handler->delete_entry((const char *)&i, &rid);
+      rc = handler->delete_entry(reinterpret_cast<const char *>(&i), &rid);
 
       ASSERT_EQ(true, handler->validate_tree());
       ASSERT_EQ(RC::SUCCESS, rc);
@@ -285,7 +282,7 @@ void test_delete(BplusTreeHandler *handler)
       } else {
         LOG_INFO("Begin to delete entry of index,  rid: %s", rid.to_string().c_str());
       }
-      rc = handler->delete_entry((const char *)&i, &rid);
+      rc = handler->delete_entry(reinterpret_cast<const char *>(&i), &rid);
 
       ASSERT_EQ(true, handler->validate_tree());
       ASSERT_EQ(RC::SUCCESS, rc);
@@ -304,7 +301,7 @@ void test_delete(BplusTreeHandler *handler)
     } else {
       LOG_INFO("Begin to insert entry of index,  rid: %s", rid.to_string().c_str());
     }
-    rc    = handler->insert_entry((const char *)&i, &rid);
+    rc    = handler->insert_entry(reinterpret_cast<const char *>(&i), &rid);
     int t = i % TIMES;
     if (t == 0 || t == 1 || t == 2) {
       ASSERT_EQ(RC::SUCCESS, rc);
@@ -318,11 +315,11 @@ void test_delete(BplusTreeHandler *handler)
 
 TEST(test_bplus_tree, test_leaf_index_node_handle)
 {
-  filesystem::path test_directory("bplus_tree");
-  filesystem::remove_all(test_directory);
-  filesystem::create_directories(test_directory);
+  std::filesystem::path test_directory("bplus_tree");
+  std::filesystem::remove_all(test_directory);
+  std::filesystem::create_directories(test_directory);
 
-  filesystem::path buffer_pool_file = test_directory / "test_leaf_index_node_handle.bp";
+  std::filesystem::path buffer_pool_file = test_directory / "test_leaf_index_node_handle.bp";
 
   IndexFileHeader index_file_header;
   index_file_header.root_page         = BP_INVALID_PAGE_NUM;
@@ -362,8 +359,8 @@ TEST(test_bplus_tree, test_leaf_index_node_handle)
   bool found;
   int  index;
   char key_mem[4 + sizeof(RID)];
-  int &key     = *(int *)key_mem;
-  RID &rid     = *(RID *)(key_mem + 4);
+  int &key     = *reinterpret_cast<int *>(key_mem);
+  RID &rid     = *reinterpret_cast<RID *>(key_mem + 4);
   rid.page_num = 0;
   rid.slot_num = 0;
   for (int i = 0; i < 5; i++) {
@@ -391,7 +388,7 @@ TEST(test_bplus_tree, test_leaf_index_node_handle)
     key   = i * 2 + 1;
     index = leaf_node.lookup(key_comparator, key_mem, &found);
     if (!found || i != index) {
-      printf("found=%d, index=%d, key=%d", found, index, key);
+      printf("found=%d, index=%d, key=%d", static_cast<int>(found), index, key);
     }
     ASSERT_EQ(true, found);
     ASSERT_EQ(i, index);
@@ -399,11 +396,11 @@ TEST(test_bplus_tree, test_leaf_index_node_handle)
 }
 TEST(test_bplus_tree, test_internal_index_node_handle)
 {
-  filesystem::path test_directory("bplus_tree");
-  filesystem::remove_all(test_directory);
-  filesystem::create_directories(test_directory);
+  std::filesystem::path test_directory("bplus_tree");
+  std::filesystem::remove_all(test_directory);
+  std::filesystem::create_directories(test_directory);
 
-  filesystem::path buffer_pool_file = test_directory / "test_internal_index_node_handle.bp";
+  std::filesystem::path buffer_pool_file = test_directory / "test_internal_index_node_handle.bp";
 
   IndexFileHeader index_file_header;
   index_file_header.root_page         = BP_INVALID_PAGE_NUM;
@@ -445,8 +442,8 @@ TEST(test_bplus_tree, test_internal_index_node_handle)
   int  index;
   int  insert_position;
   char key_mem[4 + sizeof(RID)];
-  int &key     = *(int *)key_mem;
-  RID &rid     = *(RID *)(key_mem + 4);
+  int &key     = *reinterpret_cast<int *>(key_mem);
+  RID &rid     = *reinterpret_cast<RID *>(key_mem + 4);
   rid.page_num = 0;
   rid.slot_num = 0;
 
@@ -460,14 +457,14 @@ TEST(test_bplus_tree, test_internal_index_node_handle)
   internal_node.create_new_root(1, key_mem, key);
   for (int i = 2; i < 5; i++) {
     key = i * 2 + 1;
-    internal_node.insert((const char *)&key, (PageNum)key, key_comparator);
+    internal_node.insert(reinterpret_cast<const char *>(&key), static_cast<PageNum>(key), key_comparator);
   }
 
   ASSERT_EQ(5, internal_node.size());
 
   for (int i = 1; i < 5; i++) {
     key          = i * 2 + 1;
-    int real_key = *(int *)internal_node.key_at(i);
+    int real_key = *reinterpret_cast<int *>(internal_node.key_at(i));
     ASSERT_EQ(key, real_key);
   }
 
@@ -511,7 +508,7 @@ TEST(test_bplus_tree, test_internal_index_node_handle)
     key   = i * 2 + 1;
     index = internal_node.lookup(key_comparator, key_mem, &found);
     if (!found || i != index) {
-      printf("found=%d, index=%d, key=%d", found, index, key);
+      printf("found=%d, index=%d, key=%d", static_cast<int>(found), index, key);
     }
     ASSERT_EQ(true, found);
     ASSERT_EQ(i, index);
@@ -524,10 +521,10 @@ TEST(test_bplus_tree, test_chars)
 
   VacuousLogHandler log_handler;
 
-  filesystem::path test_directory("bplus_tree");
-  filesystem::path buffer_pool_file = test_directory / "chars.btree";
-  filesystem::remove_all(test_directory);
-  filesystem::create_directory(test_directory);
+  std::filesystem::path test_directory("bplus_tree");
+  std::filesystem::path buffer_pool_file = test_directory / "chars.btree";
+  std::filesystem::remove_all(test_directory);
+  std::filesystem::create_directory(test_directory);
 
   BufferPoolManager bpm;
   ASSERT_EQ(RC::SUCCESS, bpm.init(make_unique<VacuousDoubleWriteBuffer>()));
@@ -572,10 +569,10 @@ TEST(test_bplus_tree, test_scanner)
 {
   LoggerFactory::init_default("test.log");
 
-  filesystem::path test_directory("bplus_tree");
-  filesystem::path buffer_pool_file = test_directory / "scanner.btree";
-  filesystem::remove_all(test_directory);
-  filesystem::create_directory(test_directory);
+  std::filesystem::path test_directory("bplus_tree");
+  std::filesystem::path buffer_pool_file = test_directory / "scanner.btree";
+  std::filesystem::remove_all(test_directory);
+  std::filesystem::create_directory(test_directory);
 
   VacuousLogHandler log_handler;
 
@@ -598,7 +595,7 @@ TEST(test_bplus_tree, test_scanner)
     int key      = i * 2 + 1;
     rid.page_num = 0;
     rid.slot_num = key;
-    rc           = handler.insert_entry((const char *)&key, &rid);
+    rc           = handler.insert_entry(reinterpret_cast<const char *>(&key), &rid);
     ASSERT_EQ(RC::SUCCESS, rc);
   }
 
@@ -608,7 +605,7 @@ TEST(test_bplus_tree, test_scanner)
 
   int begin = -100;
   int end   = -20;
-  rc        = scanner.open((const char *)&begin, 4, false, (const char *)&end, 4, false);
+  rc = scanner.open(reinterpret_cast<const char *>(&begin), 4, false, reinterpret_cast<const char *>(&end), 4, false);
   ASSERT_EQ(RC::SUCCESS, rc);
 
   rc = scanner.next_entry(rid);
@@ -618,7 +615,7 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = -100;
   end   = 1;
-  rc    = scanner.open((const char *)&begin, 4, false, (const char *)&end, 4, false);
+  rc = scanner.open(reinterpret_cast<const char *>(&begin), 4, false, reinterpret_cast<const char *>(&end), 4, false);
   ASSERT_EQ(RC::SUCCESS, rc);
   rc = scanner.next_entry(rid);
   ASSERT_EQ(RC::RECORD_EOF, rc);
@@ -627,7 +624,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = -100;
   end   = 1;
-  rc    = scanner.open((const char *)&begin, 4, false, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, false, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   rc = scanner.next_entry(rid);
   ASSERT_EQ(RC::SUCCESS, rc);
@@ -638,7 +636,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 1;
   end   = 3;
-  rc    = scanner.open((const char *)&begin, 4, false, (const char *)&end, 4, false /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, false, reinterpret_cast<const char *>(&end), 4, false /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   rc = scanner.next_entry(rid);
   ASSERT_EQ(RC::RECORD_EOF, rc);
@@ -647,7 +646,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 1;
   end   = 3;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
     count++;
@@ -659,7 +659,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 0;
   end   = 3;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -672,7 +673,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 11;
   end   = 21;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -685,7 +687,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 11;
   end   = 91;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -698,7 +701,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 191;
   end   = 199;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -711,7 +715,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 191;
   end   = 201;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -724,7 +729,8 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 200;
   end   = 301;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   rc = scanner.next_entry(rid);
   ASSERT_EQ(RC::RECORD_EOF, rc);
@@ -733,14 +739,15 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 300;
   end   = 201;
-  rc    = scanner.open((const char *)&begin, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(
+      reinterpret_cast<const char *>(&begin), 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::INVALID_ARGUMENT, rc);
 
   scanner.close();
 
   begin = 300;
   end   = 201;
-  rc    = scanner.open(nullptr, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(nullptr, 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -753,7 +760,7 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 300;
   end   = 10;
-  rc    = scanner.open(nullptr, 4, true, (const char *)&end, 4, true /*inclusive*/);
+  rc    = scanner.open(nullptr, 4, true, reinterpret_cast<const char *>(&end), 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -766,7 +773,7 @@ TEST(test_bplus_tree, test_scanner)
 
   begin = 190;
   end   = 10;
-  rc    = scanner.open((const char *)&begin, 4, true, nullptr, 4, true /*inclusive*/);
+  rc    = scanner.open(reinterpret_cast<const char *>(&begin), 4, true, nullptr, 4, true /*inclusive*/);
   ASSERT_EQ(RC::SUCCESS, rc);
   count = 0;
   while ((rc = scanner.next_entry(rid)) == RC::SUCCESS) {
@@ -797,10 +804,10 @@ TEST(test_bplus_tree, test_bplus_tree_insert)
 {
   LoggerFactory::init_default("test.log");
 
-  filesystem::path test_directory("bplus_tree");
-  filesystem::path buffer_pool_file = test_directory / "test_bplus_tree_insert.btree";
-  filesystem::remove_all(test_directory);
-  filesystem::create_directory(test_directory);
+  std::filesystem::path test_directory("bplus_tree");
+  std::filesystem::path buffer_pool_file = test_directory / "test_bplus_tree_insert.btree";
+  std::filesystem::remove_all(test_directory);
+  std::filesystem::create_directory(test_directory);
 
   VacuousLogHandler log_handler;
 
@@ -812,7 +819,7 @@ TEST(test_bplus_tree, test_bplus_tree_insert)
   ASSERT_EQ(RC::SUCCESS, bpm.open_file(log_handler, buffer_pool_file.c_str(), buffer_pool));
   ASSERT_NE(nullptr, buffer_pool);
 
-  BplusTreeHandler *handler = new BplusTreeHandler();
+  auto *handler = new BplusTreeHandler();
   ASSERT_EQ(RC::SUCCESS, handler->create(log_handler, *buffer_pool, AttrType::INTS, sizeof(int), ORDER, ORDER));
 
   test_insert(handler);

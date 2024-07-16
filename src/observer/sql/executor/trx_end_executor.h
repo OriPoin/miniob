@@ -31,7 +31,7 @@ public:
   TrxEndExecutor()          = default;
   virtual ~TrxEndExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event)
+  static RC execute(SQLStageEvent *sql_event)
   {
     Stmt         *stmt          = sql_event->stmt();
     SessionEvent *session_event = sql_event->session_event();

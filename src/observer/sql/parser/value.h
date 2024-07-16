@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include <cstddef>
 #include <string>
 
 /**
@@ -41,47 +42,46 @@ class Value final
 public:
   Value() = default;
 
-  Value(AttrType attr_type, char *data, int length = 4) : attr_type_(attr_type) { this->set_data(data, length); }
+  Value(AttrType attr_type, char *data, size_t length = 4) : attr_type_(attr_type) { this->set_data(data, length); }
 
   explicit Value(int val);
   explicit Value(float val);
   explicit Value(bool val);
-  explicit Value(const char *s, int len = 0);
+  explicit Value(const char *s, size_t len = 0);
 
   Value(const Value &other)            = default;
   Value &operator=(const Value &other) = default;
 
   void set_type(AttrType type) { this->attr_type_ = type; }
-  void set_data(char *data, int length);
-  void set_data(const char *data, int length) { this->set_data(const_cast<char *>(data), length); }
+  void set_data(char *data, size_t length);
+  void set_data(const char *data, size_t length) { this->set_data(const_cast<char *>(data), length); }
   void set_int(int val);
   void set_float(float val);
   void set_boolean(bool val);
-  void set_string(const char *s, int len = 0);
+  void set_string(const char *s, size_t len = 0);
   void set_value(const Value &value);
 
-  std::string to_string() const;
+  [[nodiscard]] std::string to_string() const;
 
-  int compare(const Value &other) const;
+  [[nodiscard]] int compare(const Value &other) const;
 
-  const char *data() const;
-  int         length() const { return length_; }
+  [[nodiscard]] const char *data() const;
+  [[nodiscard]] size_t      length() const { return length_; }
 
-  AttrType attr_type() const { return attr_type_; }
+  [[nodiscard]] AttrType attr_type() const { return attr_type_; }
 
-public:
   /**
    * 获取对应的值
    * 如果当前的类型与期望获取的类型不符，就会执行转换操作
    */
-  int         get_int() const;
-  float       get_float() const;
-  std::string get_string() const;
-  bool        get_boolean() const;
+  [[nodiscard]] int         get_int() const;
+  [[nodiscard]] float       get_float() const;
+  [[nodiscard]] std::string get_string() const;
+  [[nodiscard]] bool        get_boolean() const;
 
 private:
   AttrType attr_type_ = AttrType::UNDEFINED;
-  int      length_    = 0;
+  size_t   length_    = 0;
 
   union
   {

@@ -22,7 +22,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 #include "storage/record/record.h"
-#include "storage/trx/mvcc_trx.h"
+#include "storage/trx/trx.h"
 #include "common/thread/thread_pool_executor.h"
 
 using namespace std;

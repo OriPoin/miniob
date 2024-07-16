@@ -14,15 +14,12 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <math.h>
-#include <stdint.h>
+#include <cmath>
+#include <cstdint>
 #include <sys/time.h>
-#include <time.h>
+#include <ctime>
+#include <sys/types.h>
 
-#include <iomanip>
-#include <iostream>
-
-#include "common/defs.h"
 #include "common/lang/string.h"
 
 namespace common {
@@ -95,7 +92,7 @@ struct DateTime
   }
 
   // Construct from the xml datetime format
-  DateTime(string &xml_time);
+  explicit DateTime(string &xml_str);
 
   // check whether a string is valid with a xml datetime format
   static bool is_valid_xml_datetime(const string &str);
@@ -117,10 +114,13 @@ struct DateTime
 
   // Convert the DateTime to a time_t.  Note that this operation
   // can overflow on 32-bit platforms when we go beyond year 2038.
-  inline time_t to_time_t() const { return (SECONDS_PER_DAY * (m_date - JULIAN_19700101) + m_time / MILLIS_PER_SEC); }
+  [[nodiscard]] inline time_t to_time_t() const
+  {
+    return (SECONDS_PER_DAY * (m_date - JULIAN_19700101) + m_time / MILLIS_PER_SEC);
+  }
 
   // Convert the DateTime to a struct tm which is in UTC
-  tm to_tm() const
+  [[nodiscard]] tm to_tm() const
   {
     int year, month, day;
     int hour, minute, second, millis;
@@ -185,16 +185,16 @@ struct DateTime
   }
 
   // Return date and time as a string in XML Schema Date-Time format
-  string to_xml_date_time();
+  [[nodiscard]] string to_xml_date_time() const;
 
   // Return time_t from XML schema date-time format.
   time_t str_to_time_t(string &xml_str);
 
   // Return xml time str from time_t.
-  string time_t_to_xml_str(time_t timet);
+  static string time_t_to_xml_str(time_t timet);
 
   // Return time_t str from time_t.
-  string time_t_to_str(int timet);
+  static string time_t_to_str(int timet);
 
   // Return time_t string from XML schema date-time format.
   string str_to_time_t_str(string &xml_str);
@@ -210,7 +210,7 @@ struct DateTime
   static DateTime now();
 
   // Return the current wall-clock time as time_t
-  time_t nowtimet();
+  static time_t nowtimet();
 
   // Convert a time_t and optional milliseconds to a DateTime
   static DateTime from_time_t(time_t t, int millis = 0)
@@ -234,7 +234,7 @@ struct DateTime
     int a = (14 - month) / 12;
     int y = year + 4800 - a;
     int m = month + 12 * a - 3;
-    return (day + int((153 * m + 2) / 5) + y * 365 + int(y / 4) - int(y / 100) + int(y / 400) - 32045);
+    return (day + ((153 * m + 2) / 5) + y * 365 + (y / 4) - (y / 100) + (y / 400) - 32045);
   }
 
   // Convert a Julian day number to a year, month and day
@@ -242,18 +242,18 @@ struct DateTime
   {
     int a = jday + 32044;
     int b = (4 * a + 3) / 146097;
-    int c = a - int((b * 146097) / 4);
+    int c = a - ((b * 146097) / 4);
     int d = (4 * c + 3) / 1461;
-    int e = c - int((1461 * d) / 4);
+    int e = c - ((1461 * d) / 4);
     int m = (5 * e + 2) / 153;
-    day   = e - int((153 * m + 2) / 5) + 1;
-    month = m + 3 - 12 * int(m / 10);
-    year  = b * 100 + d - 4800 + int(m / 10);
+    day   = e - ((153 * m + 2) / 5) + 1;
+    month = m + 3 - 12 * (m / 10);
+    year  = b * 100 + d - 4800 + (m / 10);
   }
 
   // Return a human-friendly string representation of the timestamp,
   // expressed in terms of the local timezone
-  string to_string_local()
+  [[nodiscard]] string to_string_local() const
   {
     const time_t tt = to_time_t();
     // 'man asctime' specifies that buffer must be at least 26 bytes
@@ -266,7 +266,7 @@ struct DateTime
 
   // Return a human-friendly string representation of the timestamp,
   // expressed in terms of Coordinated Universal Time (UTC)
-  string to_string_utc()
+  [[nodiscard]] string to_string_utc() const
   {
     const time_t tt = to_time_t();
     // 'man asctime' specifies that buffer must be at least 26 bytes
@@ -284,10 +284,10 @@ struct DateTime
   void add_duration_date_time(string xml_dur);
 
   // add duration to this time
-  int max_day_in_month_for(int year, int month);
+  static int max_day_in_month_for(int yr, int month);
 
   // parse the duration string and convert it to struct tm
-  void parse_duration(string dur_str, struct tm &tm_t);
+  static void parse_duration(string dur_str, struct tm &tm_t);
 };
 
 inline bool operator==(const DateTime &lhs, const DateTime &rhs)
@@ -301,9 +301,9 @@ inline bool operator<(const DateTime &lhs, const DateTime &rhs)
 {
   if (lhs.m_date < rhs.m_date)
     return true;
-  else if (lhs.m_date > rhs.m_date)
+  if (lhs.m_date > rhs.m_date)
     return false;
-  else if (lhs.m_time < rhs.m_time)
+  if (lhs.m_time < rhs.m_time)
     return true;
   return false;
 }
@@ -344,9 +344,9 @@ public:
       : DateTime(year, month, date, hour, minute, second, millisecond)
   {}
 
-  TimeStamp(time_t time, int millisecond = 0) : DateTime(from_time_t(time, millisecond)) {}
+  explicit TimeStamp(time_t time, int millisecond = 0) : DateTime(from_time_t(time, millisecond)) {}
 
-  TimeStamp(const tm *time, int millisecond = 0) : DateTime(from_tm(*time, millisecond)) {}
+  explicit TimeStamp(const tm *time, int millisecond = 0) : DateTime(from_tm(*time, millisecond)) {}
 
   void set_current() { set(DateTime::now()); }
 };
@@ -358,13 +358,13 @@ public:
   // Defaults to the current time
   Time() { set_current(); }
 
-  Time(const DateTime &val) : DateTime(val) { clear_date(); }
+  explicit Time(const DateTime &val) : DateTime(val) { clear_date(); }
 
   Time(int hour, int minute, int second, int millisecond = 0) { set_hms(hour, minute, second, millisecond); }
 
-  Time(time_t time, int millisecond = 0) : DateTime(from_time_t(time, millisecond)) { clear_date(); }
+  explicit Time(time_t time, int millisecond = 0) : DateTime(from_time_t(time, millisecond)) { clear_date(); }
 
-  Time(const tm *time, int millisecond = 0) : DateTime(from_tm(*time, millisecond)) { clear_date(); }
+  explicit Time(const tm *time, int millisecond = 0) : DateTime(from_tm(*time, millisecond)) { clear_date(); }
 
   // Set to the current time.
   void set_current()
@@ -381,13 +381,13 @@ public:
   // Defaults to the current date
   Date() { set_current(); }
 
-  Date(const DateTime &val) : DateTime(val) { clear_time(); }
+  explicit Date(const DateTime &val) : DateTime(val) { clear_time(); }
 
   Date(int date, int month, int year) : DateTime(year, month, date, 0, 0, 0, 0) {}
 
-  Date(long sec) : DateTime(sec / DateTime::SECONDS_PER_DAY, 0) {}
+  explicit Date(u_int64_t sec) : DateTime(sec / DateTime::SECONDS_PER_DAY, 0) {}
 
-  Date(const tm *time) : DateTime(from_tm(*time)) { clear_time(); }
+  explicit Date(const tm *time) : DateTime(from_tm(*time)) { clear_time(); }
 
   // Set to the current time.
   void set_current()
@@ -403,7 +403,7 @@ public:
   static inline int64_t sec()
   {
     struct timeval tv;
-    gettimeofday(&tv, 0);
+    gettimeofday(&tv, nullptr);
     time_t sec = tv.tv_sec;
     // Round up if necessary
     if (tv.tv_usec > 500 * 1000)
@@ -414,15 +414,15 @@ public:
   static inline int64_t usec()
   {
     struct timeval tv;
-    gettimeofday(&tv, 0);
-    return (int64_t)tv.tv_sec * 1000000 + tv.tv_usec;
+    gettimeofday(&tv, nullptr);
+    return static_cast<int64_t>(tv.tv_sec) * 1000000 + tv.tv_usec;
   }
 
   static inline int64_t msec()
   {
     struct timeval tv;
-    gettimeofday(&tv, 0);
-    int64_t msec = (int64_t)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    gettimeofday(&tv, nullptr);
+    int64_t msec = static_cast<int64_t>(tv.tv_sec) * 1000 + tv.tv_usec / 1000;
     if (tv.tv_usec % 1000 >= 500)
       msec++;
     return msec;

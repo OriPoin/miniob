@@ -12,12 +12,11 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/6/29.
 //
 
-#include <stdarg.h>
+#include <cstdarg>
 
 #include "event/session_event.h"
 #include "event/sql_debug.h"
 #include "session/session.h"
-
 
 void SqlDebug::add_debug_info(const string &debug_info) { debug_infos_.push_back(debug_info); }
 

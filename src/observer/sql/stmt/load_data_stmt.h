@@ -24,12 +24,12 @@ class LoadDataStmt : public Stmt
 {
 public:
   LoadDataStmt(Table *table, const char *filename) : table_(table), filename_(filename) {}
-  virtual ~LoadDataStmt() = default;
+  ~LoadDataStmt() override = default;
 
-  StmtType type() const override { return StmtType::LOAD_DATA; }
+  [[nodiscard]] StmtType type() const override { return StmtType::LOAD_DATA; }
 
-  Table      *table() const { return table_; }
-  const char *filename() const { return filename_.c_str(); }
+  [[nodiscard]] Table      *table() const { return table_; }
+  [[nodiscard]] const char *filename() const { return filename_.c_str(); }
 
   static RC create(Db *db, const LoadDataSqlNode &load_data, Stmt *&stmt);
 

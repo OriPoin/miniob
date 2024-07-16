@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "net/communicator.h"
 #include "common/lang/string.h"
+#include <sys/types.h>
 
 /**
  * @brief 服务端启动参数
@@ -29,9 +30,8 @@ public:
   ServerParam(const ServerParam &other) = default;
   ~ServerParam()                        = default;
 
-public:
   // accpet client's address, default is INADDR_ANY, means accept every address
-  long listen_addr;
+  u_int64_t listen_addr;
 
   int max_connection_num;  ///< 最大连接数
 

@@ -14,7 +14,8 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
+#include <sys/types.h>
 
 #include "common/queue/queue.h"
 #include "common/thread/runnable.h"
@@ -22,7 +23,6 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/atomic.h"
 #include "common/lang/memory.h"
 #include "common/lang/map.h"
-#include "common/lang/chrono.h"
 #include "common/lang/thread.h"
 
 namespace common {
@@ -54,7 +54,7 @@ public:
    * @param max_size  线程池最大线程个数
    * @param keep_alive_time_ms 非核心线程空闲多久后退出
    */
-  int init(const char *name, int core_size, int max_size, long keep_alive_time_ms);
+  int init(const char *name, int core_pool_size, int max_pool_size, u_int64_t keep_alive_time_ms);
 
   /**
    * @brief 初始化线程池
@@ -65,7 +65,7 @@ public:
    * @param keep_alive_time_ms 非核心线程空闲多久后退出
    * @param work_queue 任务队列
    */
-  int init(const char *name, int core_pool_size, int max_pool_size, long keep_alive_time_ms,
+  int init(const char *name, int core_pool_size, int max_pool_size, u_int64_t keep_alive_time_ms,
       unique_ptr<Queue<unique_ptr<Runnable>>> &&work_queue);
 
   /**
@@ -93,7 +93,6 @@ public:
    */
   int await_termination();
 
-public:
   /**
    * @brief 当前活跃线程的个数，就是正在处理任务的线程个数
    */
@@ -138,13 +137,11 @@ private:
    */
   int extend_thread();
 
-private:
   /**
    * @brief 线程函数。从队列中拉任务并执行
    */
   void thread_func();
 
-private:
   /**
    * @brief 线程池的状态
    */
@@ -164,12 +161,11 @@ private:
     thread *thread_ptr  = nullptr;  /// 线程指针
   };
 
-private:
   State state_ = State::NEW;  /// 线程池状态
 
-  int                  core_pool_size_ = 0;  /// 核心线程个数
-  int                  max_pool_size_  = 0;  /// 最大线程个数
-  chrono::milliseconds keep_alive_time_ms_;  /// 非核心线程空闲多久后退出
+  int                       core_pool_size_ = 0;  /// 核心线程个数
+  int                       max_pool_size_  = 0;  /// 最大线程个数
+  std::chrono::milliseconds keep_alive_time_ms_;  /// 非核心线程空闲多久后退出
 
   unique_ptr<Queue<unique_ptr<Runnable>>> work_queue_;  /// 任务队列
 

@@ -9,10 +9,8 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #include <vector>
-#include <iostream>
 #include <unordered_map>
 
-#include "common/math/simd_util.h"
 #include "common/rc.h"
 #include "sql/expr/expression.h"
 
@@ -68,7 +66,7 @@ public:
   {
   public:
     explicit Scanner(AggregateHashTable *hash_table) : AggregateHashTable::Scanner(hash_table) {}
-    ~Scanner() = default;
+    ~Scanner() override = default;
 
     void open_scan() override;
 
@@ -78,16 +76,16 @@ public:
     StandardHashTable::iterator end_;
     StandardHashTable::iterator it_;
   };
-  StandardAggregateHashTable(const std::vector<Expression *> aggregations)
+  explicit StandardAggregateHashTable(const std::vector<Expression *> &aggregations)
   {
-    for (auto &expr : aggregations) {
+    for (const auto &expr : aggregations) {
       ASSERT(expr->type() == ExprType::AGGREGATION, "expect aggregate expression");
       auto *aggregation_expr = static_cast<AggregateExpr *>(expr);
       aggr_types_.push_back(aggregation_expr->aggregate_type());
     }
   }
 
-  virtual ~StandardAggregateHashTable() {}
+  ~StandardAggregateHashTable() override = default;
 
   RC add_chunk(Chunk &groups_chunk, Chunk &aggrs_chunk) override;
 

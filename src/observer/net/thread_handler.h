@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <functional>
+// #include <functional>
 #include "common/rc.h"
 
 class Communicator;
@@ -58,7 +58,6 @@ public:
    */
   virtual RC close_connection(Communicator *communicator) = 0;
 
-public:
   /**
    * @brief 创建一个线程模型
    */

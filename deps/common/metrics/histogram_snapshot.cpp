@@ -14,8 +14,8 @@ See the Mulan PSL v2 for more details. */
 
 #include "histogram_snapshot.h"
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 #include <algorithm>
 #include <numeric>
@@ -23,11 +23,11 @@ See the Mulan PSL v2 for more details. */
 
 namespace common {
 
-HistogramSnapShot::HistogramSnapShot() {}
+HistogramSnapShot::HistogramSnapShot() = default;
 
 HistogramSnapShot::HistogramSnapShot(const std::vector<double> &collection) { set_collection(collection); }
 
-HistogramSnapShot::~HistogramSnapShot() {}
+HistogramSnapShot::~HistogramSnapShot() = default;
 
 void HistogramSnapShot::set_collection(const std::vector<double> &collection)
 {
@@ -43,16 +43,16 @@ size_t HistogramSnapShot::size() const { return data_.size(); }
 
 double HistogramSnapShot::get_value(double quantile)
 {
-  if (quantile > 1.0f) {
-    quantile = 1.0f;
+  if (quantile > 1.0F) {
+    quantile = 1.0F;
   }
 
-  if (quantile < 0.0f) {
-    quantile = 0.0f;
+  if (quantile < 0.0F) {
+    quantile = 0.0F;
   }
 
   if (data_.empty()) {
-    return 0.0f;
+    return 0.0F;
   }
 
   double pos = quantile * (data_.size() + 1);
@@ -65,26 +65,26 @@ double HistogramSnapShot::get_value(double quantile)
     return data_[data_.size() - 1];
   }
 
-  double lower = data_[(int)pos - 1];
-  double upper = data_[(int)pos];
+  double lower = data_[static_cast<int>(pos) - 1];
+  double upper = data_[static_cast<int>(pos)];
 
   return lower + (pos - floor(pos)) * (upper - lower);
 }
 
-double HistogramSnapShot::get_median() { return get_value(0.5f); }
+double HistogramSnapShot::get_median() { return get_value(0.5F); }
 
-double HistogramSnapShot::get_75th() { return get_value(0.75f); }
+double HistogramSnapShot::get_75th() { return get_value(0.75F); }
 
-double HistogramSnapShot::get_90th() { return get_value(0.90f); }
+double HistogramSnapShot::get_90th() { return get_value(0.90F); }
 
-double HistogramSnapShot::get_95th() { return get_value(0.95f); }
-double HistogramSnapShot::get_99th() { return get_value(0.99f); }
-double HistogramSnapShot::get_999th() { return get_value(0.999f); }
+double HistogramSnapShot::get_95th() { return get_value(0.95F); }
+double HistogramSnapShot::get_99th() { return get_value(0.99F); }
+double HistogramSnapShot::get_999th() { return get_value(0.999F); }
 
 double HistogramSnapShot::get_max()
 {
   if (data_.empty()) {
-    return 0.0f;
+    return 0.0F;
   }
 
   return static_cast<double>(*data_.rbegin());
@@ -93,7 +93,7 @@ double HistogramSnapShot::get_max()
 double HistogramSnapShot::get_min()
 {
   if (data_.empty()) {
-    return 0.0f;
+    return 0.0F;
   }
 
   return static_cast<double>(*data_.begin());
@@ -102,10 +102,10 @@ double HistogramSnapShot::get_min()
 double HistogramSnapShot::get_mean()
 {
   if (data_.empty()) {
-    return 0.0f;
+    return 0.0F;
   }
 
-  return std::accumulate(data_.begin(), data_.end(), (double)0) * 1.0f / data_.size();
+  return std::accumulate(data_.begin(), data_.end(), static_cast<double>(0)) * 1.0F / data_.size();
 }
 
 const std::vector<double> &HistogramSnapShot::get_values() { return data_; }

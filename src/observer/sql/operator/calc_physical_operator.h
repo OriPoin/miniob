@@ -20,18 +20,18 @@ See the Mulan PSL v2 for more details. */
 class CalcPhysicalOperator : public PhysicalOperator
 {
 public:
-  CalcPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions)
+  explicit CalcPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions)
       : expressions_(std::move(expressions)), tuple_(expressions_)
   {}
 
-  virtual ~CalcPhysicalOperator() = default;
+  ~CalcPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::CALC; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::CALC; }
 
-  std::string name() const override { return "CALC"; }
-  std::string param() const override { return ""; }
+  [[nodiscard]] std::string name() const override { return "CALC"; }
+  [[nodiscard]] std::string param() const override { return ""; }
 
-  RC open(Trx *trx) override { return RC::SUCCESS; }
+  RC open(Trx * /*trx*/) override { return RC::SUCCESS; }
   RC next() override
   {
     RC rc = RC::SUCCESS;
@@ -53,11 +53,11 @@ public:
   }
   RC close() override { return RC::SUCCESS; }
 
-  int cell_num() const { return tuple_.cell_num(); }
+  [[nodiscard]] int cell_num() const { return tuple_.cell_num(); }
 
   Tuple *current_tuple() override { return &tuple_; }
 
-  const std::vector<std::unique_ptr<Expression>> &expressions() const { return expressions_; }
+  [[nodiscard]] const std::vector<std::unique_ptr<Expression>> &expressions() const { return expressions_; }
 
   RC tuple_schema(TupleSchema &schema) const override
   {

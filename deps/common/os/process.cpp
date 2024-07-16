@@ -13,12 +13,11 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <fcntl.h>
-#include <string.h>
+#include <cstring>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 
-#include "common/io/io.h"
 #include "common/log/log.h"
 #include "common/os/path.h"
 #include "common/os/process.h"
@@ -44,7 +43,7 @@ string get_process_name(const char *prog_name)
   assert(buf_len);
 
   char *buf = new char[buf_len + 1];
-  if (buf == NULL) {
+  if (buf == nullptr) {
     cerr << "Failed to alloc memory for program name." << SYS_OUTPUT_FILE_POS << SYS_OUTPUT_ERROR << endl;
     return "";
   }
@@ -104,7 +103,7 @@ void sys_log_redirect(const char *std_out_file, const char *std_err_file)
 
   // Get timestamp.
   struct timeval tv;
-  rc = gettimeofday(&tv, NULL);
+  rc = gettimeofday(&tv, nullptr);
   if (rc != 0) {
     cerr << "Fail to get current time" << endl;
     tv.tv_sec = 0;
@@ -133,7 +132,7 @@ void sys_log_redirect(const char *std_out_file, const char *std_err_file)
     dup2(errfd, STDERR_FILENO);
     close(errfd);
   }
-  setvbuf(stderr, NULL, _IONBF, 0);  // Make sure stderr is not buffering
+  setvbuf(stderr, nullptr, _IONBF, 0);  // Make sure stderr is not buffering
   cerr << "Process " << getpid() << " built error output at " << tv.tv_sec << endl;
 
   string outFile = getAboslutPath(std_out_file);
@@ -151,10 +150,8 @@ void sys_log_redirect(const char *std_out_file, const char *std_err_file)
     dup2(outfd, STDOUT_FILENO);
     close(outfd);
   }
-  setvbuf(stdout, NULL, _IONBF, 0);  // Make sure stdout not buffering
+  setvbuf(stdout, nullptr, _IONBF, 0);  // Make sure stdout not buffering
   cout << "Process " << getpid() << " built standard output at " << tv.tv_sec << endl;
-
-  return;
 }
 
 }  // namespace common

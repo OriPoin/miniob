@@ -12,8 +12,6 @@ See the Mulan PSL v2 for more details. */
 // Created by wangyunlai on 2024/02/01
 //
 
-#include <string.h>
-
 #include "storage/clog/log_handler.h"
 #include "common/lang/string.h"
 #include "storage/clog/disk_log_handler.h"

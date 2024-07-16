@@ -30,7 +30,7 @@ public:
   HelpExecutor()          = default;
   virtual ~HelpExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event)
+  static RC execute(SQLStageEvent *sql_event)
   {
     const char *strings[] = {"show tables;",
         "desc `table name`;",
@@ -41,9 +41,9 @@ public:
         "delete from `table` [where `column`=`value`];",
         "select [ * | `columns` ] from `table`;"};
 
-    auto oper = new StringListPhysicalOperator();
-    for (size_t i = 0; i < sizeof(strings) / sizeof(strings[0]); i++) {
-      oper->append(strings[i]);
+    auto *oper = new StringListPhysicalOperator();
+    for (const auto *string : strings) {
+      oper->append(string);
     }
 
     SqlResult *sql_result = sql_event->session_event()->sql_result();

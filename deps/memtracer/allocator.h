@@ -31,8 +31,8 @@ extern "C" mt_visible void *calloc(size_t nelem, size_t size);
 extern "C" mt_visible void *realloc(void *ptr, size_t size);
 extern "C" mt_visible void  free(void *ptr);
 extern "C" mt_visible void  cfree(void *ptr);
-extern "C" mt_visible void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);
-extern "C" mt_visible int   munmap(void *addr, size_t length);
+extern "C" mt_visible void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset) throw();
+extern "C" mt_visible int   munmap(void *addr, size_t length) throw();
 extern "C" mt_visible char *strdup(const char *s) MT_THROW;
 extern "C" mt_visible char *strndup(const char *s, size_t n) MT_THROW;
 
@@ -48,16 +48,16 @@ mt_visible void  operator delete(void *ptr, std::size_t size) noexcept;
 mt_visible void  operator delete[](void *ptr, std::size_t size) noexcept;
 
 // unsupported libc functions, for simpler memory tracking.
-extern "C" mt_visible char *realpath(const char *fname, char *resolved_name);
+extern "C" mt_visible char *realpath(const char *fname, char *resolved_name) throw();
 extern "C" mt_visible void *memalign(size_t alignment, size_t size);
-extern "C" mt_visible void *valloc(size_t size);
+extern "C" mt_visible void *valloc(size_t size) throw();
 extern "C" mt_visible void *pvalloc(size_t size);
-extern "C" mt_visible int   posix_memalign(void **memptr, size_t alignment, size_t size);
+extern "C" mt_visible int   posix_memalign(void **memptr, size_t alignment, size_t size) throw();
 
 #ifdef LINUX
-extern "C" mt_visible int      brk(void *addr);
-extern "C" mt_visible void    *sbrk(intptr_t increment);
-extern "C" mt_visible long int syscall(long int __sysno, ...);
+extern "C" mt_visible int      brk(void *addr) throw();
+extern "C" mt_visible void    *sbrk(intptr_t increment) throw();
+extern "C" mt_visible long int syscall(long int __sysno, ...) throw();
 #elif defined(__MACH__)
 extern "C" mt_visible void *brk(const void *addr);
 extern "C" mt_visible void *sbrk(int increment);

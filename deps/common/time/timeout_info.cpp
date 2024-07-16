@@ -19,7 +19,7 @@ namespace common {
 
 TimeoutInfo::TimeoutInfo(time_t deadLine) : deadline_(deadLine), is_timed_out_(false), ref_cnt_(0)
 {
-  MUTEX_INIT(&mutex_, NULL);
+  MUTEX_INIT(&mutex_, nullptr);
 }
 
 TimeoutInfo::~TimeoutInfo()
@@ -53,7 +53,7 @@ bool TimeoutInfo::has_timed_out()
   bool ret = is_timed_out_;
   if (!is_timed_out_) {
     struct timeval tv;
-    gettimeofday(&tv, NULL);
+    gettimeofday(&tv, nullptr);
 
     ret = is_timed_out_ = (tv.tv_sec >= deadline_);
   }

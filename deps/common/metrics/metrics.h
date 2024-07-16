@@ -15,12 +15,13 @@ See the Mulan PSL v2 for more details. */
 #ifndef __COMMON_METRICS_METRICS_H__
 #define __COMMON_METRICS_METRICS_H__
 
-#include "common/lang/string.h"
+#include <atomic>
+#include <cstdint>
+#include <sys/time.h>
+#include <sys/types.h>
 #include "common/metrics/metric.h"
 #include "common/metrics/snapshot.h"
-#include "common/metrics/timer_snapshot.h"
 #include "common/metrics/uniform_reservoir.h"
-#include <sys/time.h>
 
 namespace common {
 
@@ -33,7 +34,7 @@ public:
 
 class Counter : public Metric
 {
-  void set_snapshot(SnapshotBasic<long> *value) { snapshot_value_ = value; }
+  void set_snapshot(SnapshotBasic<int64_t> *value) { snapshot_value_ = value; }
 };
 
 class Meter : public Metric
@@ -42,14 +43,14 @@ public:
   Meter();
   virtual ~Meter();
 
-  void inc(long increase);
+  void inc(int64_t increase);
   void inc();
 
-  void snapshot();
+  void snapshot() override;
 
 protected:
-  std::atomic<long> value_;
-  long              snapshot_tick_;
+  std::atomic<int64_t> value_;
+  int64_t              snapshot_tick_;
 };
 
 // SimpleTimer just get tps and meanvalue
@@ -57,16 +58,16 @@ protected:
 class SimpleTimer : public Meter
 {
 public:
-  virtual ~SimpleTimer();
+  ~SimpleTimer() override;
 
-  void inc(long increase);
+  void inc(int64_t increase);
 
-  void update(long one);
+  void update(int64_t one);
 
-  void snapshot();
+  void snapshot() override;
 
 protected:
-  std::atomic<long> times_;
+  std::atomic<int64_t> times_;
 };
 
 // Histogram metric is complicated, in normal case ,
@@ -76,11 +77,11 @@ protected:
 class Histogram : public UniformReservoir
 {
 public:
-  Histogram(RandomGenerator &random);
+  explicit Histogram(RandomGenerator &random);
   Histogram(RandomGenerator &random, size_t size);
-  virtual ~Histogram();
+  ~Histogram() override;
 
-  void snapshot();
+  void snapshot() override;
 };
 
 // timeunit is ms
@@ -88,31 +89,30 @@ public:
 class Timer : public UniformReservoir
 {
 public:
-  Timer(RandomGenerator &random);
+  explicit Timer(RandomGenerator &random);
   Timer(RandomGenerator &random, size_t size);
-  virtual ~Timer();
+  ~Timer() override;
 
-  void snapshot();
-  void update(double ms);
+  void snapshot() override;
+  void update(double ms) override;
 
 protected:
-  std::atomic<long> value_;
-  long              snapshot_tick_;
+  std::atomic<int64_t> value_;
+  int64_t              snapshot_tick_;
 };
 // update ms
 class TimerStat
 {
 public:
-  TimerStat(SimpleTimer &st_);
+  explicit TimerStat(SimpleTimer &other_st);
 
   ~TimerStat();
   void start();
   void end();
 
-public:
   SimpleTimer &st_;
-  long         start_tick_;
-  long         end_tick_;
+  int64_t      start_tick_;
+  int64_t      end_tick_;
 };
 
 }  // namespace common

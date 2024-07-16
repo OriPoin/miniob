@@ -12,6 +12,8 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/01/11.
 //
 
+#include "common/queue/simple_queue.h"
+
 namespace common {
 
 template <typename T>
@@ -41,4 +43,4 @@ int SimpleQueue<T>::size() const
   return queue_.size();
 }
 
-} // namespace common
+}  // namespace common

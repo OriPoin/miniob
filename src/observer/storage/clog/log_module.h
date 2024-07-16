@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 /**
  * @brief 日志模块
@@ -31,14 +31,13 @@ public:
     TRANSACTION      /// 事务
   };
 
-public:
   explicit LogModule(Id id) : id_(id) {}
   explicit LogModule(int32_t id) : id_(static_cast<Id>(id)) {}
 
-  Id      id() const { return id_; }
-  int32_t index() const { return static_cast<int32_t>(id_); }
+  [[nodiscard]] Id      id() const { return id_; }
+  [[nodiscard]] int32_t index() const { return static_cast<int32_t>(id_); }
 
-  const char *name() const
+  [[nodiscard]] const char *name() const
   {
     switch (id_) {
       case Id::BUFFER_POOL: return "BUFFER_POOL";

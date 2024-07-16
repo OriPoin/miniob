@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include "common/lang/iostream.h"
 #include "common/rc.h"
 #include "common/lang/string.h"
 #include "sql/parser/parse_defs.h"
@@ -30,23 +31,20 @@ class FieldMeta
 {
 public:
   FieldMeta();
-  FieldMeta(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, int field_id);
+  FieldMeta(const char *name, AttrType attr_type, int attr_offset, size_t attr_len, bool visible, int field_id);
   ~FieldMeta() = default;
 
-  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, int field_id);
+  RC init(const char *name, AttrType attr_type, int attr_offset, size_t attr_len, bool visible, int field_id);
 
-public:
-  const char *name() const;
-  AttrType    type() const;
-  int         offset() const;
-  int         len() const;
-  bool        visible() const;
-  int         field_id() const;
+  [[nodiscard]] const char *name() const;
+  [[nodiscard]] AttrType    type() const;
+  [[nodiscard]] int         offset() const;
+  [[nodiscard]] size_t      len() const;
+  [[nodiscard]] bool        visible() const;
+  [[nodiscard]] int         field_id() const;
 
-public:
   void desc(ostream &os) const;
 
-public:
   void      to_json(Json::Value &json_value) const;
   static RC from_json(const Json::Value &json_value, FieldMeta &field);
 
@@ -54,7 +52,7 @@ protected:
   string   name_;
   AttrType attr_type_;
   int      attr_offset_;
-  int      attr_len_;
+  size_t   attr_len_;
   bool     visible_;
   int      field_id_;
 };

@@ -22,9 +22,9 @@ public:
   GroupByLogicalOperator(
       std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<Expression *> &&expressions);
 
-  virtual ~GroupByLogicalOperator() = default;
+  ~GroupByLogicalOperator() override = default;
 
-  LogicalOperatorType type() const override { return LogicalOperatorType::GROUP_BY; }
+  [[nodiscard]] LogicalOperatorType type() const override { return LogicalOperatorType::GROUP_BY; }
 
   auto &group_by_expressions() { return group_by_expressions_; }
   auto &aggregate_expressions() { return aggregate_expressions_; }

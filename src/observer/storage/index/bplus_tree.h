@@ -17,14 +17,14 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <string.h>
+#include <cstddef>
+#include <cstring>
 
 #include "common/lang/comparator.h"
 #include "common/lang/memory.h"
 #include "common/lang/sstream.h"
 #include "common/lang/functional.h"
 #include "common/log/log.h"
-#include "sql/parser/parse_defs.h"
 #include "storage/buffer/disk_buffer_pool.h"
 #include "storage/record/record_manager.h"
 #include "storage/index/latch_memo.h"
@@ -56,25 +56,25 @@ enum class BplusTreeOperationType
 class AttrComparator
 {
 public:
-  void init(AttrType type, int length)
+  void init(AttrType type, size_t length)
   {
     attr_type_   = type;
     attr_length_ = length;
   }
 
-  int attr_length() const { return attr_length_; }
+  [[nodiscard]] size_t attr_length() const { return attr_length_; }
 
   int operator()(const char *v1, const char *v2) const
   {
     switch (attr_type_) {
       case AttrType::INTS: {
-        return common::compare_int((void *)v1, (void *)v2);
+        return common::compare_int(v1, v2);
       } break;
       case AttrType::FLOATS: {
-        return common::compare_float((void *)v1, (void *)v2);
+        return common::compare_float(v1, v2);
       }
       case AttrType::CHARS: {
-        return common::compare_string((void *)v1, attr_length_, (void *)v2, attr_length_);
+        return common::compare_string(v1, attr_length_, v2, attr_length_);
       }
       default: {
         ASSERT(false, "unknown attr type. %d", attr_type_);
@@ -85,7 +85,7 @@ public:
 
 private:
   AttrType attr_type_;
-  int      attr_length_;
+  size_t   attr_length_;
 };
 
 /**
@@ -96,9 +96,9 @@ private:
 class KeyComparator
 {
 public:
-  void init(AttrType type, int length) { attr_comparator_.init(type, length); }
+  void init(AttrType type, size_t length) { attr_comparator_.init(type, length); }
 
-  const AttrComparator &attr_comparator() const { return attr_comparator_; }
+  [[nodiscard]] const AttrComparator &attr_comparator() const { return attr_comparator_; }
 
   int operator()(const char *v1, const char *v2) const
   {
@@ -107,8 +107,8 @@ public:
       return result;
     }
 
-    const RID *rid1 = (const RID *)(v1 + attr_comparator_.attr_length());
-    const RID *rid2 = (const RID *)(v2 + attr_comparator_.attr_length());
+    const RID *rid1 = reinterpret_cast<const RID *>(v1 + attr_comparator_.attr_length());
+    const RID *rid2 = reinterpret_cast<const RID *>(v2 + attr_comparator_.attr_length());
     return RID::compare(rid1, rid2);
   }
 
@@ -123,13 +123,13 @@ private:
 class AttrPrinter
 {
 public:
-  void init(AttrType type, int length)
+  void init(AttrType type, size_t length)
   {
     attr_type_   = type;
     attr_length_ = length;
   }
 
-  int attr_length() const { return attr_length_; }
+  [[nodiscard]] size_t attr_length() const { return attr_length_; }
 
   string operator()(const char *v) const
   {
@@ -139,7 +139,7 @@ public:
 
 private:
   AttrType attr_type_;
-  int      attr_length_;
+  size_t   attr_length_;
 };
 
 /**
@@ -149,16 +149,16 @@ private:
 class KeyPrinter
 {
 public:
-  void init(AttrType type, int length) { attr_printer_.init(type, length); }
+  void init(AttrType type, size_t length) { attr_printer_.init(type, length); }
 
-  const AttrPrinter &attr_printer() const { return attr_printer_; }
+  [[nodiscard]] const AttrPrinter &attr_printer() const { return attr_printer_; }
 
   string operator()(const char *v) const
   {
     stringstream ss;
     ss << "{key:" << attr_printer_(v) << ",";
 
-    const RID *rid = (const RID *)(v + attr_printer_.attr_length());
+    const RID *rid = reinterpret_cast<const RID *>(v + attr_printer_.attr_length());
     ss << "rid:{" << rid->to_string() << "}}";
     return ss.str();
   }
@@ -187,7 +187,7 @@ struct IndexFileHeader
   int32_t  key_length;         ///< attr length + sizeof(RID)
   AttrType attr_type;          ///< 键值的类型
 
-  const string to_string() const
+  [[nodiscard]] string to_string() const
   {
     stringstream ss;
 
@@ -281,22 +281,22 @@ public:
   void init_empty(bool leaf);
 
   /// 是否叶子节点
-  bool is_leaf() const;
+  [[nodiscard]] bool is_leaf() const;
 
   /// @brief 存储的键值大小
-  virtual int key_size() const;
+  [[nodiscard]] virtual int key_size() const;
   /// @brief 存储的值的大小。内部节点和叶子节点是不一样的，但是这里返回的是叶子节点存储的大小
-  virtual int value_size() const;
+  [[nodiscard]] virtual int value_size() const;
   /// @brief 存储的键值对的大小。值是指叶子节点中存放的数据
-  virtual int item_size() const;
+  [[nodiscard]] virtual int item_size() const;
 
-  void    increase_size(int n);
-  int     size() const;
-  int     max_size() const;
-  int     min_size() const;
-  RC      set_parent_page_num(PageNum page_num);
-  PageNum parent_page_num() const;
-  PageNum page_num() const;
+  void                  increase_size(int n);
+  [[nodiscard]] int     size() const;
+  [[nodiscard]] int     max_size() const;
+  [[nodiscard]] int     min_size() const;
+  RC                    set_parent_page_num(PageNum page_num);
+  [[nodiscard]] PageNum parent_page_num() const;
+  [[nodiscard]] PageNum page_num() const;
 
   /**
    * @brief 判断对指定的操作，是否安全的
@@ -309,9 +309,9 @@ public:
   /**
    * @brief 验证当前节点是否有问题
    */
-  bool validate() const;
+  [[nodiscard]] bool validate() const;
 
-  Frame *frame() const { return frame_; }
+  [[nodiscard]] Frame *frame() const { return frame_; }
 
   friend string to_string(const IndexNodeHandler &handler);
 
@@ -324,11 +324,10 @@ protected:
    * @note 这并不是一个纯虚函数，是为了可以直接使用 IndexNodeHandler 类。
    * 但是使用这个类时，注意不能使用与这个函数相关的函数。
    */
-  virtual char *__item_at(int index) const { return nullptr; }
-  char         *__key_at(int index) const { return __item_at(index); }
-  char         *__value_at(int index) const { return __item_at(index) + key_size(); };
+  [[nodiscard]] virtual char *_item_at(int /*index*/) const { return nullptr; }
+  [[nodiscard]] char         *_key_at(int index) const { return _item_at(index); }
+  [[nodiscard]] char         *_value_at(int index) const { return _item_at(index) + key_size(); };
 
-protected:
   BplusTreeMiniTransaction &mtr_;
   const IndexFileHeader    &header_;
   Frame                    *frame_ = nullptr;
@@ -343,11 +342,11 @@ class LeafIndexNodeHandler final : public IndexNodeHandler
 {
 public:
   LeafIndexNodeHandler(BplusTreeMiniTransaction &mtr, const IndexFileHeader &header, Frame *frame);
-  virtual ~LeafIndexNodeHandler() = default;
+  ~LeafIndexNodeHandler() override = default;
 
-  RC      init_empty();
-  RC      set_next_page(PageNum page_num);
-  PageNum next_page() const;
+  RC                    init_empty();
+  RC                    set_next_page(PageNum page_num);
+  [[nodiscard]] PageNum next_page() const;
 
   char *key_at(int index);
   char *value_at(int index);
@@ -374,7 +373,7 @@ public:
   friend string to_string(const LeafIndexNodeHandler &handler, const KeyPrinter &printer);
 
 protected:
-  char *__item_at(int index) const override;
+  [[nodiscard]] char *_item_at(int index) const override;
 
   RC append(const char *items, int num);
   RC append(const char *item);
@@ -392,7 +391,7 @@ class InternalIndexNodeHandler final : public IndexNodeHandler
 {
 public:
   InternalIndexNodeHandler(BplusTreeMiniTransaction &mtr, const IndexFileHeader &header, Frame *frame);
-  virtual ~InternalIndexNodeHandler() = default;
+  ~InternalIndexNodeHandler() override = default;
 
   RC init_empty();
   RC create_new_root(PageNum first_page_num, const char *key, PageNum page_num);
@@ -431,7 +430,7 @@ public:
 
   bool validate(const KeyComparator &comparator, DiskBufferPool *bp) const;
 
-  friend string to_string(const InternalIndexNodeHandler &handler, const KeyPrinter &printer);
+  friend string to_string(const InternalIndexNodeHandler &node, const KeyPrinter &printer);
 
 private:
   RC insert_items(int index, const char *items, int num);
@@ -439,13 +438,11 @@ private:
   RC append(const char *item);
   RC preappend(const char *item);
 
-private:
-  char *__item_at(int index) const override;
+  [[nodiscard]] char *_item_at(int index) const override;
 
-  int value_size() const override;
-  int item_size() const override;
+  [[nodiscard]] int value_size() const override;
+  [[nodiscard]] int item_size() const override;
 
-private:
   InternalIndexNode *internal_node_ = nullptr;
 };
 
@@ -466,9 +463,9 @@ public:
    * @param internal_max_size 内部节点最大大小
    * @param leaf_max_size 叶子节点最大大小
    */
-  RC create(LogHandler &log_handler, BufferPoolManager &bpm, const char *file_name, AttrType attr_type, int attr_length,
-      int internal_max_size = -1, int leaf_max_size = -1);
-  RC create(LogHandler &log_handler, DiskBufferPool &buffer_pool, AttrType attr_type, int attr_length,
+  RC create(LogHandler &log_handler, BufferPoolManager &bpm, const char *file_name, AttrType attr_type,
+      size_t attr_length, int internal_max_size = -1, int leaf_max_size = -1);
+  RC create(LogHandler &log_handler, DiskBufferPool &buffer_pool, AttrType attr_type, size_t attr_length,
       int internal_max_size = -1, int leaf_max_size = -1);
 
   /**
@@ -500,7 +497,7 @@ public:
    */
   RC delete_entry(const char *user_key, const RID *rid);
 
-  bool is_empty() const;
+  [[nodiscard]] bool is_empty() const;
 
   /**
    * @brief 获取指定值的record
@@ -518,12 +515,10 @@ public:
    */
   bool validate_tree();
 
-public:
-  const IndexFileHeader &file_header() const { return file_header_; }
-  DiskBufferPool        &buffer_pool() const { return *disk_buffer_pool_; }
-  LogHandler            &log_handler() const { return *log_handler_; }
+  [[nodiscard]] const IndexFileHeader &file_header() const { return file_header_; }
+  [[nodiscard]] DiskBufferPool        &buffer_pool() const { return *disk_buffer_pool_; }
+  [[nodiscard]] LogHandler            &log_handler() const { return *log_handler_; }
 
-public:
   /**
    * @brief 恢复更新ROOT页面
    * @details 重做日志时调用的接口
@@ -535,7 +530,6 @@ public:
    */
   RC recover_init_header_page(BplusTreeMiniTransaction &mtr, Frame *frame, const IndexFileHeader &header);
 
-public:
   /**
    * 这些函数都是线程不安全的，不要在多线程的环境下调用
    */
@@ -579,7 +573,7 @@ protected:
    * @brief 使用crabing protocol 获取页面
    */
   RC crabing_protocal_fetch_page(
-      BplusTreeMiniTransaction &mtr, BplusTreeOperationType op, PageNum page_num, bool is_root_page, Frame *&frame);
+      BplusTreeMiniTransaction &mtr, BplusTreeOperationType op, PageNum page_num, bool is_root_node, Frame *&frame);
 
   /**
    * @brief 从叶子节点中删除指定的键值对
@@ -669,7 +663,7 @@ private:
 class BplusTreeScanner
 {
 public:
-  BplusTreeScanner(BplusTreeHandler &tree_handler);
+  explicit BplusTreeScanner(BplusTreeHandler &tree_handler);
   ~BplusTreeScanner();
 
   /**
@@ -706,7 +700,7 @@ private:
   /**
    * 如果key的类型是CHARS, 扩展或缩减user_key的大小刚好是schema中定义的大小
    */
-  RC fix_user_key(const char *user_key, int key_len, bool want_greater, char **fixed_key, bool *should_inclusive);
+  RC fix_user_key(const char *user_key, int key_len, bool want_greater, char **fixed_key, bool *should_inclusive) const;
 
   void fetch_item(RID &rid);
 
@@ -715,7 +709,6 @@ private:
    */
   bool touch_end();
 
-private:
   bool                     inited_ = false;
   BplusTreeHandler        &tree_handler_;
   BplusTreeMiniTransaction mtr_;

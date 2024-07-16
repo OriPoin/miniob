@@ -26,7 +26,7 @@ MetricsRegistry &get_metrics_registry()
 
 void MetricsRegistry::register_metric(const std::string &tag, Metric *metric)
 {
-  std::map<std::string, Metric *>::iterator it = metrics.find(tag);
+  auto it = metrics.find(tag);
   if (it != metrics.end()) {
     LOG_WARN("%s has been registered!", tag.c_str());
     return;
@@ -49,7 +49,7 @@ void MetricsRegistry::unregister(const std::string &tag)
 
 void MetricsRegistry::snapshot()
 {
-  std::map<std::string, Metric *>::iterator it = metrics.begin();
+  auto it = metrics.begin();
   for (; it != metrics.end(); it++) {
     it->second->snapshot();
   }
@@ -57,10 +57,9 @@ void MetricsRegistry::snapshot()
 
 void MetricsRegistry::report()
 {
-  for (std::list<Reporter *>::iterator reporterIt = reporters.begin(); reporterIt != reporters.end(); reporterIt++) {
-    for (std::map<std::string, Metric *>::iterator it = metrics.begin(); it != metrics.end(); it++) {
-
-      (*reporterIt)->report(it->first, it->second);
+  for (auto &reporter : reporters) {
+    for (auto &metric : metrics) {
+      reporter->report(metric.first, metric.second);
     }
   }
 }

@@ -64,7 +64,7 @@ public:
    * @param storage_format 表的存储格式
    */
   RC create_table(const char *table_name, span<const AttrInfoSqlNode> attributes,
-      const StorageFormat storage_format = StorageFormat::ROW_FORMAT);
+      StorageFormat storage_format = StorageFormat::ROW_FORMAT);
 
   /**
    * @brief 根据表名查找表
@@ -110,7 +110,6 @@ private:
   /// @brief 初始化数据库的double buffer pool
   RC init_dblwr_buffer();
 
-private:
   string                         name_;                 ///< 数据库名称
   string                         path_;                 ///< 数据库文件存放的目录
   unordered_map<string, Table *> opened_tables_;        ///< 当前所有打开的表

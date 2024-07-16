@@ -26,7 +26,7 @@ void VacuousTrxKit::destroy_trx(Trx *trx) { delete trx; }
 
 Trx *VacuousTrxKit::find_trx(int32_t /* trx_id */) { return nullptr; }
 
-void VacuousTrxKit::all_trxes(vector<Trx *> &trxes) { return; }
+void VacuousTrxKit::all_trxes(vector<Trx *> & /*trxes*/) {}
 
 LogReplayer *VacuousTrxKit::create_log_replayer(Db &, LogHandler &) { return new VacuousTrxLogReplayer; }
 
@@ -36,7 +36,7 @@ RC VacuousTrx::insert_record(Table *table, Record &record) { return table->inser
 
 RC VacuousTrx::delete_record(Table *table, Record &record) { return table->delete_record(record); }
 
-RC VacuousTrx::visit_record(Table *table, Record &record, ReadWriteMode) { return RC::SUCCESS; }
+RC VacuousTrx::visit_record(Table * /*table*/, Record & /*record*/, ReadWriteMode) { return RC::SUCCESS; }
 
 RC VacuousTrx::start_if_need() { return RC::SUCCESS; }
 

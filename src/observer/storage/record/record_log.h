@@ -14,14 +14,13 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "common/types.h"
 #include "common/rc.h"
 #include "common/lang/span.h"
 #include "common/lang/string.h"
 #include "storage/clog/log_replayer.h"
-#include "sql/parser/parse_defs.h"
 
 struct RID;
 class LogHandler;
@@ -44,15 +43,14 @@ public:
     UPDATE      /// 更新一条记录
   };
 
-public:
   explicit RecordOperation(Type type) : type_(type) {}
   explicit RecordOperation(int32_t type) : type_(static_cast<Type>(type)) {}
   ~RecordOperation() = default;
 
-  Type    type() const { return type_; }
-  int32_t type_id() const { return static_cast<int32_t>(type_); }
+  [[nodiscard]] Type    type() const { return type_; }
+  [[nodiscard]] int32_t type_id() const { return static_cast<int32_t>(type_); }
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 
 private:
   Type type_;
@@ -73,7 +71,7 @@ struct RecordLogHeader
 
   char data[0];
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 
   static const int32_t SIZE;
 };
@@ -139,10 +137,10 @@ private:
 class RecordLogReplayer final : public LogReplayer
 {
 public:
-  RecordLogReplayer(BufferPoolManager &bpm);
-  virtual ~RecordLogReplayer() = default;
+  explicit RecordLogReplayer(BufferPoolManager &bpm);
+  ~RecordLogReplayer() override = default;
 
-  virtual RC replay(const LogEntry &entry) override;
+  RC replay(const LogEntry &entry) override;
 
 private:
   RC replay_init_page(DiskBufferPool &buffer_pool, const RecordLogHeader &log_header);
@@ -150,6 +148,5 @@ private:
   RC replay_delete(DiskBufferPool &buffer_pool, const RecordLogHeader &log_header);
   RC replay_update(DiskBufferPool &buffer_pool, const RecordLogHeader &log_header);
 
-private:
   BufferPoolManager &bpm_;
 };

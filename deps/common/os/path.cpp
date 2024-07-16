@@ -13,7 +13,7 @@ See the Mulan PSL v2 for more details. */
 //
 #include <dirent.h>
 #include <regex.h>
-#include <string.h>
+#include <cstring>
 #include <sys/stat.h>
 
 #include "common/defs.h"
@@ -27,7 +27,7 @@ namespace common {
 string getFileName(const string &fullPath)
 {
   string szRt;
-  size_t      pos;
+  size_t pos;
   try {
     pos = fullPath.rfind(FILE_PATH_SPLIT);
     if (pos != string::npos && pos < fullPath.size() - 1) {
@@ -46,7 +46,7 @@ void getFileName(const char *path, string &fileName)
 {
   // Don't care the last character as FILE_PATH_SPLIT
   const char *endPos = strrchr(path, FILE_PATH_SPLIT);
-  if (endPos == NULL) {
+  if (endPos == nullptr) {
     fileName = path;
     return;
   }
@@ -56,14 +56,12 @@ void getFileName(const char *path, string &fileName)
   } else {
     fileName.assign(endPos + 1);
   }
-
-  return;
 }
 
 string getDirName(const string &fullPath)
 {
   string szRt;
-  size_t      pos;
+  size_t pos;
   try {
     pos = fullPath.rfind(FILE_PATH_SPLIT);
     if (pos != string::npos && pos > 0) {
@@ -82,7 +80,7 @@ void getDirName(const char *path, string &parent)
 {
   // Don't care the last character as FILE_PATH_SPLIT
   const char *endPos = strrchr(path, FILE_PATH_SPLIT);
-  if (endPos == NULL) {
+  if (endPos == nullptr) {
     parent = path;
     return;
   }
@@ -92,16 +90,14 @@ void getDirName(const char *path, string &parent)
   } else {
     parent.assign(path, endPos - path);
   }
-
-  return;
 }
 
 string getFilePath(const string &fullPath)
 {
   string szRt;
-  size_t      pos;
+  size_t pos;
   try {
-    pos = fullPath.rfind("/");
+    pos = fullPath.rfind('/');
     if (pos != string::npos) {
       szRt = fullPath.substr(0, pos);
     } else if (pos == string::npos) {
@@ -121,7 +117,7 @@ string getAboslutPath(const char *path)
     const int MAX_SIZE = 256;
     char      current_absolute_path[MAX_SIZE];
 
-    if (NULL == getcwd(current_absolute_path, MAX_SIZE)) {}
+    if (nullptr == getcwd(current_absolute_path, MAX_SIZE)) {}
   }
 
   return aPath;
@@ -130,7 +126,7 @@ string getAboslutPath(const char *path)
 bool is_directory(const char *path)
 {
   struct stat st;
-  return (0 == stat(path, &st)) && (st.st_mode & S_IFDIR);
+  return (0 == stat(path, &st)) && ((st.st_mode & S_IFDIR) != 0U);
 }
 
 bool check_directory(string &path)
@@ -192,10 +188,10 @@ int list_file(const char *path, const char *filter_pattern, vector<string> &file
 
   // readdir_r is deprecated in some systems, so we use readdir instead
   // as readdir is not thread-safe, it is better to use C++ directory
-  // TODO
+  // TODO(unknown):
   struct dirent *pentry;
   char           tmp_path[PATH_MAX];
-  while ((pentry = readdir(pdir)) != NULL) {
+  while ((pentry = readdir(pdir)) != nullptr) {
     if ('.' == pentry->d_name[0])  // 跳过./..文件和隐藏文件
       continue;
 
@@ -203,8 +199,8 @@ int list_file(const char *path, const char *filter_pattern, vector<string> &file
     if (is_directory(tmp_path))
       continue;
 
-    if (!filter_pattern || 0 == regexec(&reg, pentry->d_name, 0, NULL, 0))
-      files.push_back(pentry->d_name);
+    if (!filter_pattern || 0 == regexec(&reg, pentry->d_name, 0, nullptr, 0))
+      files.emplace_back(pentry->d_name);
   }
 
   if (filter_pattern)

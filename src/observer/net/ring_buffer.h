@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/rc.h"
 #include "common/lang/vector.h"
+#include <cstdint>
 
 /**
  * @brief 环形缓存，当前用于通讯写入数据时的缓存
@@ -71,22 +72,21 @@ public:
   /**
    * @brief 缓存的总容量
    */
-  int32_t capacity() const { return static_cast<int32_t>(buffer_.size()); }
+  [[nodiscard]] int32_t capacity() const { return static_cast<int32_t>(buffer_.size()); }
 
   /**
    * @brief 缓存中剩余的可写入数据的空间
    */
-  int32_t remain() const { return capacity() - size(); }
+  [[nodiscard]] int32_t remain() const { return capacity() - size(); }
 
   /**
    * @brief 缓存中已经写入数据的空间大小
    */
-  int32_t size() const { return data_size_; }
+  [[nodiscard]] int32_t size() const { return data_size_; }
 
 private:
-  int32_t read_pos() const { return (write_pos_ - this->size() + capacity()) % capacity(); }
+  [[nodiscard]] int32_t read_pos() const { return (write_pos_ - this->size() + capacity()) % capacity(); }
 
-private:
   vector<char> buffer_;         ///< 缓存使用的内存，使用vector方便管理
   int32_t      data_size_ = 0;  ///< 已经写入的数据量
   int32_t      write_pos_ = 0;  ///< 当前写指针的位置，范围不会超出[0, capacity)

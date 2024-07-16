@@ -24,8 +24,8 @@ See the Mulan PSL v2 for more details. */
 class CompositeTuple : public Tuple
 {
 public:
-  CompositeTuple()          = default;
-  virtual ~CompositeTuple() = default;
+  CompositeTuple()           = default;
+  ~CompositeTuple() override = default;
 
   /// @brief 删除默认构造函数
   CompositeTuple(const CompositeTuple &) = delete;
@@ -37,10 +37,10 @@ public:
   /// @brief 保留移动赋值函数
   CompositeTuple &operator=(CompositeTuple &&) = default;
 
-  int cell_num() const override;
-  RC  cell_at(int index, Value &cell) const override;
-  RC  spec_at(int index, TupleCellSpec &spec) const override;
-  RC  find_cell(const TupleCellSpec &spec, Value &cell) const override;
+  [[nodiscard]] int cell_num() const override;
+  RC                cell_at(int index, Value &cell) const override;
+  RC                spec_at(int index, TupleCellSpec &spec) const override;
+  RC                find_cell(const TupleCellSpec &spec, Value &cell) const override;
 
   void   add_tuple(std::unique_ptr<Tuple> tuple);
   Tuple &tuple_at(size_t index);

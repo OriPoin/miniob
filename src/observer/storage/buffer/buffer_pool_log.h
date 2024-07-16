@@ -37,15 +37,14 @@ public:
     DEALLOCATE  /// 释放页面
   };
 
-public:
-  BufferPoolOperation(Type type) : type_(type) {}
+  explicit BufferPoolOperation(Type type) : type_(type) {}
   explicit BufferPoolOperation(int32_t type) : type_(static_cast<Type>(type)) {}
   ~BufferPoolOperation() = default;
 
-  Type    type() const { return type_; }
-  int32_t type_id() const { return static_cast<int32_t>(type_); }
+  [[nodiscard]] Type    type() const { return type_; }
+  [[nodiscard]] int32_t type_id() const { return static_cast<int32_t>(type_); }
 
-  string to_string() const
+  [[nodiscard]] string to_string() const
   {
     string ret = std::to_string(type_id()) + ":";
     switch (type_) {
@@ -69,7 +68,7 @@ struct BufferPoolLogEntry
   int32_t operation_type;  /// operation type
   PageNum page_num;        /// page number
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 };
 
 /**
@@ -106,7 +105,6 @@ public:
 private:
   RC append_log(BufferPoolOperation::Type type, PageNum page_num, LSN &lsn);
 
-private:
   DiskBufferPool &buffer_pool_;
   LogHandler     &log_handler_;
 };
@@ -118,8 +116,8 @@ private:
 class BufferPoolLogReplayer final : public LogReplayer
 {
 public:
-  BufferPoolLogReplayer(BufferPoolManager &bp_manager);
-  virtual ~BufferPoolLogReplayer() = default;
+  explicit BufferPoolLogReplayer(BufferPoolManager &bp_manager);
+  ~BufferPoolLogReplayer() override = default;
 
   ///! @copydoc LogReplayer::replay
   RC replay(const LogEntry &entry) override;

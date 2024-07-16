@@ -12,7 +12,6 @@ See the Mulan PSL v2 for more details. */
 
 #include <cstdlib>
 
-#include "memtracer/common.h"
 #include "common/lang/thread.h"
 #include "common/lang/atomic.h"
 #include "common/lang/mutex.h"

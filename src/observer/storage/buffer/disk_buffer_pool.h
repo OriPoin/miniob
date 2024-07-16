@@ -14,16 +14,12 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <fcntl.h>
-#include <functional>
-#include <mutex>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <time.h>
-#include <optional>
+#include <ctime>
 
 #include "common/lang/bitmap.h"
 #include "common/lang/lru_cache.h"
@@ -73,7 +69,7 @@ struct BPFileHeader
    */
   static const int MAX_PAGE_NUM = (BP_PAGE_DATA_SIZE - sizeof(page_count) - sizeof(allocated_pages)) * 8;
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 };
 
 /**
@@ -87,7 +83,7 @@ struct BPFileHeader
 class BPFrameManager
 {
 public:
-  BPFrameManager(const char *tag);
+  explicit BPFrameManager(const char *tag);
 
   RC init(int pool_num);
   RC cleanup();
@@ -144,7 +140,6 @@ private:
   Frame *get_internal(const FrameId &frame_id);
   RC     free_internal(const FrameId &frame_id, Frame *frame);
 
-private:
   class BPFrameIdHasher
   {
   public:
@@ -243,7 +238,7 @@ public:
    */
   RC check_all_pages_unpinned();
 
-  int file_desc() const;
+  [[nodiscard]] int file_desc() const;
 
   /**
    * 如果页面是脏的，就将数据刷新到double write buffer
@@ -268,10 +263,9 @@ public:
   RC redo_allocate_page(LSN lsn, PageNum page_num);
   RC redo_deallocate_page(LSN lsn, PageNum page_num);
 
-public:
-  int32_t id() const { return buffer_pool_id_; }
+  [[nodiscard]] int32_t id() const { return buffer_pool_id_; }
 
-  const char *filename() const { return file_name_.c_str(); }
+  [[nodiscard]] const char *filename() const { return file_name_.c_str(); }
 
 protected:
   RC allocate_frame(PageNum page_num, Frame **buf);
@@ -310,7 +304,6 @@ private:
   common::Mutex lock_;
   common::Mutex wr_lock_;
 
-private:
   friend class BufferPoolIterator;
 };
 
@@ -321,7 +314,7 @@ private:
 class BufferPoolManager final
 {
 public:
-  BufferPoolManager(int memory_size = 0);
+  explicit BufferPoolManager(int memory_size = 0);
   ~BufferPoolManager();
 
   RC init(unique_ptr<DoubleWriteBuffer> dblwr_buffer);

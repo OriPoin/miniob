@@ -10,13 +10,13 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
-OPTION(ENABLE_ASAN "Enable build with address sanitizer" ON)
+OPTION(ENABLE_ASAN "Enable build with address sanitizer" OFF)
 OPTION(ENABLE_TSAN "Build with thread sanitizer" OFF)
 OPTION(ENABLE_UBSAN "Build with undefined behavior sanitizer" OFF)
-OPTION(WITH_UNIT_TESTS "Compile miniob with unit tests" ON)
+OPTION(WITH_UNIT_TESTS "Compile miniob with unit tests" OFF)
 OPTION(WITH_BENCHMARK "Compile benchmark" OFF)
 # TODO: support MemTracer with sanitizers, currently MemTracer doesn't work with sanitizers.
-OPTION(WITH_MEMTRACER "Compile memtracer" ON)
+OPTION(WITH_MEMTRACER "Compile memtracer" OFF)
 OPTION(ENABLE_COVERAGE "Enable unittest coverage" OFF)
 OPTION(ENABLE_NOPIE "Enable no pie" OFF)
 OPTION(CONCURRENCY "Support concurrency operations" OFF)

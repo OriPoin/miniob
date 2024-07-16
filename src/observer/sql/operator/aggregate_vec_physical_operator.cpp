@@ -12,8 +12,6 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "sql/operator/aggregate_vec_physical_operator.h"
 #include "sql/expr/aggregate_state.h"
-#include "sql/expr/expression_tuple.h"
-#include "sql/expr/composite_tuple.h"
 
 using namespace std;
 using namespace common;
@@ -24,7 +22,7 @@ AggregateVecPhysicalOperator::AggregateVecPhysicalOperator(vector<Expression *> 
   value_expressions_.reserve(aggregate_expressions_.size());
 
   ranges::for_each(aggregate_expressions_, [this](Expression *expr) {
-    auto *      aggregate_expr = static_cast<AggregateExpr *>(expr);
+    auto       *aggregate_expr = static_cast<AggregateExpr *>(expr);
     Expression *child_expr     = aggregate_expr->child().get();
     ASSERT(child_expr != nullptr, "aggregation expression must have a child expression");
     value_expressions_.emplace_back(child_expr);
@@ -37,13 +35,13 @@ AggregateVecPhysicalOperator::AggregateVecPhysicalOperator(vector<Expression *> 
 
     if (aggregate_expr->aggregate_type() == AggregateExpr::Type::SUM) {
       if (aggregate_expr->value_type() == AttrType::INTS) {
-        void *aggr_value                     = malloc(sizeof(SumState<int>));
-        ((SumState<int> *)aggr_value)->value = 0;
+        void *aggr_value                                  = malloc(sizeof(SumState<int>));
+        (static_cast<SumState<int> *>(aggr_value))->value = 0;
         aggr_values_.insert(aggr_value);
         output_chunk_.add_column(make_unique<Column>(AttrType::INTS, sizeof(int)), i);
       } else if (aggregate_expr->value_type() == AttrType::FLOATS) {
-        void *aggr_value                       = malloc(sizeof(SumState<float>));
-        ((SumState<float> *)aggr_value)->value = 0;
+        void *aggr_value                                    = malloc(sizeof(SumState<float>));
+        (static_cast<SumState<float> *>(aggr_value))->value = 0;
         aggr_values_.insert(aggr_value);
         output_chunk_.add_column(make_unique<Column>(AttrType::FLOATS, sizeof(float)), i);
       }
@@ -93,12 +91,12 @@ RC AggregateVecPhysicalOperator::open(Trx *trx)
 template <class STATE, typename T>
 void AggregateVecPhysicalOperator::update_aggregate_state(void *state, const Column &column)
 {
-  STATE *state_ptr = reinterpret_cast<STATE *>(state);
-  T *    data      = (T *)column.data();
+  auto *state_ptr = reinterpret_cast<STATE *>(state);
+  T    *data      = reinterpret_cast<T *>(column.data());
   state_ptr->update(data, column.count());
 }
 
-RC AggregateVecPhysicalOperator::next(Chunk &chunk)
+RC AggregateVecPhysicalOperator::next(Chunk & /*chunk*/)
 {
   // your code here
   exit(-1);

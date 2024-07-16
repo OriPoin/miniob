@@ -63,8 +63,8 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt)
 
   // collect query fields in `select` statement
   vector<unique_ptr<Expression>> bound_expressions;
-  ExpressionBinder expression_binder(binder_context);
-  
+  ExpressionBinder               expression_binder(binder_context);
+
   for (unique_ptr<Expression> &expression : select_sql.expressions) {
     RC rc = expression_binder.bind_expression(expression, bound_expressions);
     if (OB_FAIL(rc)) {
@@ -101,12 +101,12 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt)
   }
 
   // everything alright
-  SelectStmt *select_stmt = new SelectStmt();
+  auto *select_stmt = new SelectStmt();
 
   select_stmt->tables_.swap(tables);
   select_stmt->query_expressions_.swap(bound_expressions);
   select_stmt->filter_stmt_ = filter_stmt;
   select_stmt->group_by_.swap(group_by_expressions);
-  stmt                      = select_stmt;
+  stmt = select_stmt;
   return RC::SUCCESS;
 }

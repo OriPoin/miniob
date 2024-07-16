@@ -32,21 +32,20 @@ class JavaThreadPoolThreadHandler : public ThreadHandler
 {
 public:
   JavaThreadPoolThreadHandler() = default;
-  virtual ~JavaThreadPoolThreadHandler();
+  ~JavaThreadPoolThreadHandler() override;
 
   //! @copydoc ThreadHandler::start
-  virtual RC start() override;
+  RC start() override;
   //! @copydoc ThreadHandler::stop
-  virtual RC stop() override;
+  RC stop() override;
   //! @copydoc ThreadHandler::await_stop
-  virtual RC await_stop() override;
+  RC await_stop() override;
 
   //! @copydoc ThreadHandler::new_connection
-  virtual RC new_connection(Communicator *communicator) override;
+  RC new_connection(Communicator *communicator) override;
   //! @copydoc ThreadHandler::close_connection
-  virtual RC close_connection(Communicator *communicator) override;
+  RC close_connection(Communicator *communicator) override;
 
-public:
   /**
    * @brief 使用libevent处理消息时，需要有一个回调函数，这里就相当于libevent的回调函数
    *

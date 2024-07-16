@@ -14,12 +14,12 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include <filesystem>
+
 #include "common/rc.h"
 #include "common/types.h"
 #include "common/lang/map.h"
 #include "common/lang/functional.h"
-#include "common/lang/filesystem.h"
-#include "common/lang/fstream.h"
 #include "common/lang/string.h"
 
 class LogEntry;
@@ -48,7 +48,6 @@ private:
    */
   RC skip_to(LSN start_lsn);
 
-private:
   int    fd_ = -1;
   string filename_;
 };
@@ -79,16 +78,16 @@ public:
   /**
    * @brief 当前文件是否已经打开
    */
-  bool valid() const;
+  [[nodiscard]] bool valid() const;
 
   /**
    * @brief 文件是否已经写满。当前是按照日志条数来判断的
    */
-  bool full() const;
+  [[nodiscard]] bool full() const;
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 
-  const char *filename() const { return filename_.c_str(); }
+  [[nodiscard]] const char *filename() const { return filename_.c_str(); }
 
 private:
   string filename_;       /// 日志文件名
@@ -144,12 +143,11 @@ private:
    */
   static RC get_lsn_from_filename(const string &filename, LSN &lsn);
 
-private:
   static constexpr const char *file_prefix_ = "clog_";
   static constexpr const char *file_suffix_ = ".log";
 
-  filesystem::path directory_;                  /// 日志文件存放的目录
-  int              max_entry_number_per_file_;  /// 一个文件最大允许存放多少条日志
+  std::filesystem::path directory_;                  /// 日志文件存放的目录
+  int                   max_entry_number_per_file_;  /// 一个文件最大允许存放多少条日志
 
-  map<LSN, filesystem::path> log_files_;  /// 日志文件名和第一个LSN的映射
+  map<LSN, std::filesystem::path> log_files_;  /// 日志文件名和第一个LSN的映射
 };

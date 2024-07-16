@@ -13,6 +13,8 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include "sql/expr/tuple_cell.h"
+
+#include <utility>
 #include "common/lang/string.h"
 
 using namespace std;
@@ -43,5 +45,4 @@ TupleCellSpec::TupleCellSpec(const char *alias)
   }
 }
 
-TupleCellSpec::TupleCellSpec(const string &alias) : alias_(alias)
-{}
+TupleCellSpec::TupleCellSpec(string alias) : alias_(std::move(alias)) {}

@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/condition_filter.h"
 #include "storage/trx/trx.h"
 #include "storage/clog/log_handler.h"
+#include <cstddef>
 
 using namespace common;
 
@@ -24,9 +25,8 @@ RecordPageHandler   *RecordPageHandler::create(StorageFormat format)
 {
   if (format == StorageFormat::ROW_FORMAT) {
     return new RowRecordPageHandler();
-  } else {
-    return new PaxRecordPageHandler();
   }
+  return new PaxRecordPageHandler();
 }
 /**
  * @brief 8字节对齐
@@ -48,7 +48,7 @@ int page_record_capacity(int page_size, int record_size, int fixed_size)
 {
   // (record_capacity * record_size) + record_capacity/8 + 1 <= (page_size - fix_size)
   // ==> record_capacity = ((page_size - fix_size) - 1) / (record_size + 0.125)
-  return (int)((page_size - PAGE_HEADER_SIZE - fixed_size - 1) / (record_size + 0.125));
+  return static_cast<int>((page_size - PAGE_HEADER_SIZE - fixed_size - 1) / (record_size + 0.125));
 }
 
 /**
@@ -68,8 +68,8 @@ string PageHeader::to_string() const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-RecordPageIterator::RecordPageIterator() {}
-RecordPageIterator::~RecordPageIterator() {}
+RecordPageIterator::RecordPageIterator()  = default;
+RecordPageIterator::~RecordPageIterator() = default;
 
 void RecordPageIterator::init(RecordPageHandler *record_page_handler, SlotNum start_slot_num /*=0*/)
 {
@@ -101,9 +101,8 @@ RC RecordPageHandler::init(DiskBufferPool &buffer_pool, LogHandler &log_handler,
     if (frame_->page_num() == page_num) {
       LOG_WARN("Disk buffer pool has been opened for page_num %d.", page_num);
       return RC::RECORD_OPENNED;
-    } else {
-      cleanup();
     }
+    cleanup();
   }
 
   RC ret = RC::SUCCESS;
@@ -122,7 +121,7 @@ RC RecordPageHandler::init(DiskBufferPool &buffer_pool, LogHandler &log_handler,
   disk_buffer_pool_ = &buffer_pool;
 
   rw_mode_     = mode;
-  page_header_ = (PageHeader *)(data);
+  page_header_ = reinterpret_cast<PageHeader *>(data);
   bitmap_      = data + PAGE_HEADER_SIZE;
 
   (void)log_handler_.init(log_handler, buffer_pool.id(), page_header_->record_real_size, storage_format_);
@@ -149,7 +148,7 @@ RC RecordPageHandler::recover_init(DiskBufferPool &buffer_pool, PageNum page_num
   frame_->write_latch();
   disk_buffer_pool_ = &buffer_pool;
   rw_mode_          = ReadWriteMode::READ_WRITE;
-  page_header_      = (PageHeader *)(data);
+  page_header_      = reinterpret_cast<PageHeader *>(data);
   bitmap_           = data + PAGE_HEADER_SIZE;
 
   buffer_pool.recover_page(page_num);
@@ -201,7 +200,8 @@ RC RecordPageHandler::init_empty_page(
     }
   }
 
-  rc = log_handler_.init_new_page(frame_, page_num, span((const char *)column_index, column_num * sizeof(int)));
+  rc = log_handler_.init_new_page(
+      frame_, page_num, span(reinterpret_cast<const char *>(column_index), column_num * sizeof(int)));
   if (OB_FAIL(rc)) {
     LOG_ERROR("Failed to init empty page: write log failed. page_num:record_size %d:%d. rc=%s", 
               page_num, record_size, strrc(rc));
@@ -344,10 +344,9 @@ RC RowRecordPageHandler::delete_record(const RID *rid)
     }
 
     return RC::SUCCESS;
-  } else {
-    LOG_DEBUG("Invalid slot_num %d, slot is empty, page_num %d.", rid->slot_num, frame_->page_num());
-    return RC::RECORD_NOT_EXIST;
   }
+  LOG_DEBUG("Invalid slot_num %d, slot is empty, page_num %d.", rid->slot_num, frame_->page_num());
+  return RC::RECORD_NOT_EXIST;
 }
 
 RC RowRecordPageHandler::update_record(const RID &rid, const char *data)
@@ -379,10 +378,9 @@ RC RowRecordPageHandler::update_record(const RID &rid, const char *data)
     }
 
     return RC::SUCCESS;
-  } else {
-    LOG_DEBUG("Invalid slot_num %d, slot is empty, page_num %d.", rid.slot_num, frame_->page_num());
-    return RC::RECORD_NOT_EXIST;
   }
+  LOG_DEBUG("Invalid slot_num %d, slot is empty, page_num %d.", rid.slot_num, frame_->page_num());
+  return RC::RECORD_NOT_EXIST;
 }
 
 RC RowRecordPageHandler::get_record(const RID &rid, Record &record)
@@ -407,14 +405,14 @@ RC RowRecordPageHandler::get_record(const RID &rid, Record &record)
 PageNum RecordPageHandler::get_page_num() const
 {
   if (nullptr == page_header_) {
-    return (PageNum)(-1);
+    return static_cast<PageNum>(-1);
   }
   return frame_->page_num();
 }
 
 bool RecordPageHandler::is_full() const { return page_header_->record_num >= page_header_->record_capacity; }
 
-RC PaxRecordPageHandler::insert_record(const char *data, RID *rid)
+RC PaxRecordPageHandler::insert_record(const char * /*data*/, RID * /*rid*/)
 {
   // your code here
   exit(-1);
@@ -438,20 +436,19 @@ RC PaxRecordPageHandler::delete_record(const RID *rid)
     }
 
     return RC::SUCCESS;
-  } else {
-    LOG_DEBUG("Invalid slot_num %d, slot is empty, page_num %d.", rid->slot_num, frame_->page_num());
-    return RC::RECORD_NOT_EXIST;
   }
+  LOG_DEBUG("Invalid slot_num %d, slot is empty, page_num %d.", rid->slot_num, frame_->page_num());
+  return RC::RECORD_NOT_EXIST;
 }
 
-RC PaxRecordPageHandler::get_record(const RID &rid, Record &record)
+RC PaxRecordPageHandler::get_record(const RID & /*rid*/, Record & /*record*/)
 {
   // your code here
   exit(-1);
 }
 
-// TODO: specify the column_ids that chunk needed. currenly we get all columns
-RC PaxRecordPageHandler::get_chunk(Chunk &chunk)
+// TODO(unknown): specify the column_ids that chunk needed. currenly we get all columns
+RC PaxRecordPageHandler::get_chunk(Chunk & /*chunk*/)
 {
   // your code here
   exit(-1);
@@ -462,19 +459,17 @@ char *PaxRecordPageHandler::get_field_data(SlotNum slot_num, int col_id)
   int *col_idx = reinterpret_cast<int *>(frame_->data() + page_header_->col_idx_offset);
   if (col_id == 0) {
     return frame_->data() + page_header_->data_offset + (get_field_len(col_id) * slot_num);
-  } else {
-    return frame_->data() + page_header_->data_offset + col_idx[col_id - 1] + (get_field_len(col_id) * slot_num);
   }
+  return frame_->data() + page_header_->data_offset + col_idx[col_id - 1] + (get_field_len(col_id) * slot_num);
 }
 
-int PaxRecordPageHandler::get_field_len(int col_id)
+size_t PaxRecordPageHandler::get_field_len(int col_id)
 {
   int *col_idx = reinterpret_cast<int *>(frame_->data() + page_header_->col_idx_offset);
   if (col_id == 0) {
     return col_idx[col_id] / page_header_->record_capacity;
-  } else {
-    return (col_idx[col_id] - col_idx[col_id - 1]) / page_header_->record_capacity;
   }
+  return (col_idx[col_id] - col_idx[col_id - 1]) / page_header_->record_capacity;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -605,7 +600,7 @@ RC RecordFileHandler::insert_record(const char *data, int record_size, RID *rid)
   return record_page_handler->insert_record(data, rid);
 }
 
-RC RecordFileHandler::recover_insert_record(const char *data, int record_size, const RID &rid)
+RC RecordFileHandler::recover_insert_record(const char *data, int /*record_size*/, const RID &rid)
 {
   RC ret = RC::SUCCESS;
 
@@ -801,7 +796,7 @@ RC RecordFileScanner::fetch_next_record_in_page()
     }
 
     // 让当前事务探测一下是否访问冲突，或者需要加锁、等锁等操作，由事务自己决定
-    // TODO 把判断事务有效性的逻辑从Scanner中移除
+    // TODO(unknown): 把判断事务有效性的逻辑从Scanner中移除
     rc = trx_->visit_record(table_, next_record_, rw_mode_);
     if (rc == RC::RECORD_INVISIBLE) {
       // 可以参考MvccTrx，表示当前记录不可见
@@ -909,12 +904,12 @@ RC ChunkFileScanner::next_chunk(Chunk &chunk)
     rc = record_page_handler_->get_chunk(chunk);
     if (rc == RC::SUCCESS) {
       return rc;
-    } else if (rc == RC::RECORD_EOF) {
-      break;
-    } else {
-      LOG_WARN("failed to get chunk from page. page_num=%d, rc=%s", page_num, strrc(rc));
-      return rc;
     }
+    if (rc == RC::RECORD_EOF) {
+      break;
+    }
+    LOG_WARN("failed to get chunk from page. page_num=%d, rc=%s", page_num, strrc(rc));
+    return rc;
   }
 
   record_page_handler_->cleanup();

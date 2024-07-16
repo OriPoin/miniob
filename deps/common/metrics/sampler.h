@@ -30,8 +30,8 @@ public:
 
   bool sampling();
 
-  void   set_ratio(double ratio);
-  double get_ratio();
+  void                 set_ratio(double ratio);
+  [[nodiscard]] double get_ratio() const;
 
 private:
   double          ratio_     = 1.0;

@@ -11,14 +11,13 @@ See the Mulan PSL v2 for more details. */
 //
 // Created by qiling on 2021/4/13.
 //
-#include <errno.h>
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 
 #include "common/log/log.h"
 #include "persist.h"
 
-PersistHandler::PersistHandler() {}
+PersistHandler::PersistHandler() = default;
 
 PersistHandler::~PersistHandler() { close_file(); }
 

@@ -14,9 +14,9 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/lang/string.h"
 
-#include <ctype.h>
-#include <errno.h>
-#include <string.h>
+#include <cctype>
+#include <cerrno>
+#include <cstring>
 
 #include <iomanip>
 
@@ -28,7 +28,7 @@ namespace common {
 
 char *strip(char *str_)
 {
-  if (str_ == NULL || *str_ == 0) {
+  if (str_ == nullptr || *str_ == 0) {
     LOG_ERROR("The augument is invalid!");
     return str_;
   }
@@ -70,21 +70,21 @@ string size_to_pad_str(int size, int pad)
 
 string &str_to_upper(string &s)
 {
-  transform(s.begin(), s.end(), s.begin(), (int (*)(int)) & toupper);
+  transform(s.begin(), s.end(), s.begin(), static_cast<int (*)(int)>(&toupper));
   return s;
 }
 
 string &str_to_lower(string &s)
 {
-  transform(s.begin(), s.end(), s.begin(), (int (*)(int)) & tolower);
+  transform(s.begin(), s.end(), s.begin(), static_cast<int (*)(int)>(&tolower));
   return s;
 }
 
-void split_string(const string &str, string delim, set<string> &results)
+void split_string(const string &str, const string &delim, set<string> &results)
 {
   int    cut_at;
   string tmp_str(str);
-  while ((cut_at = tmp_str.find_first_of(delim)) != (signed)tmp_str.npos) {
+  while ((cut_at = tmp_str.find_first_of(delim)) != static_cast<signed>(string::npos)) {
     if (cut_at > 0) {
       results.insert(tmp_str.substr(0, cut_at));
     }
@@ -96,11 +96,11 @@ void split_string(const string &str, string delim, set<string> &results)
   }
 }
 
-void split_string(const string &str, string delim, vector<string> &results)
+void split_string(const string &str, const string &delim, vector<string> &results)
 {
   int    cut_at;
   string tmp_str(str);
-  while ((cut_at = tmp_str.find_first_of(delim)) != (signed)tmp_str.npos) {
+  while ((cut_at = tmp_str.find_first_of(delim)) != static_cast<signed>(string::npos)) {
     if (cut_at > 0) {
       results.push_back(tmp_str.substr(0, cut_at));
     }
@@ -127,10 +127,9 @@ void split_string(char *str, char dim, vector<char *> &results, bool keep_null)
   }
   if (p - l > 0 || keep_null)
     results.push_back(l);
-  return;
 }
 
-void merge_string(string &str, string delim, vector<string> &source, size_t result_len)
+void merge_string(string &str, const string &delim, vector<string> &source, size_t result_len)
 {
   ostringstream ss;
   if (source.empty()) {
@@ -151,12 +150,11 @@ void merge_string(string &str, string delim, vector<string> &source, size_t resu
   }
 
   str = ss.str();
-  return;
 }
 
 void replace(string &str, const string &old, const string &new_str)
 {
-  if (old.compare(new_str) == 0) {
+  if (old == new_str) {
     return;
   }
 
@@ -182,15 +180,13 @@ void replace(string &str, const string &old, const string &new_str)
   result += str.substr(last_index, str.length() - last_index + 1);
 
   str = result;
-
-  return;
 }
 
 char *bin_to_hex(const char *s, const int len, char *hex_buff)
 {
-  int            new_len = 0;
-  unsigned char *end     = (unsigned char *)s + len;
-  for (unsigned char *p = (unsigned char *)s; p < end; p++) {
+  int         new_len = 0;
+  const char *end     = static_cast<const char *>(s) + len;
+  for (const auto *p = static_cast<const char *>(s); p < end; p++) {
     new_len += snprintf(hex_buff + new_len, 3, "%02x", *p);
   }
 
@@ -214,14 +210,14 @@ char *hex_to_bin(const char *s, char *bin_buff, int *dest_len)
   }
 
   *dest_len = src_len / 2;
-  src       = (char *)s;
+  src       = const_cast<char *>(s);
   buff[2]   = '\0';
 
   p_dest_end = bin_buff + (*dest_len);
   for (p_dest = bin_buff; p_dest < p_dest_end; p_dest++) {
     buff[0] = *src++;
     buff[1] = *src++;
-    *p_dest = (char)strtol(buff, NULL, 16);
+    *p_dest = static_cast<char>(strtol(buff, nullptr, 16));
   }
 
   *p_dest = '\0';
@@ -253,7 +249,7 @@ bool is_blank(const char *s)
  */
 char *substr(const char *s, int n1, int n2)
 {
-  char *sp = (char *)malloc(sizeof(char) * (n2 - n1 + 2));
+  char *sp = static_cast<char *>(malloc(sizeof(char) * (n2 - n1 + 2)));
   int   i, j = 0;
   for (i = n1; i <= n2; i++) {
     sp[j++] = s[i];

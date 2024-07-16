@@ -8,7 +8,7 @@ EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
-#include <stdint.h>
+#include <cstdint>
 #include "common/math/simd_util.h"
 
 #if defined(USE_SIMD)

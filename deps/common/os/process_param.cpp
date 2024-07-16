@@ -13,13 +13,13 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include "process_param.h"
-#include <assert.h>
+#include <cassert>
 namespace common {
 
 //! Global process config
 ProcessParam *&the_process_param()
 {
-  static ProcessParam *process_cfg = new ProcessParam();
+  static auto *process_cfg = new ProcessParam();
 
   return process_cfg;
 }

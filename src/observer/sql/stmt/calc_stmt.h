@@ -30,21 +30,19 @@ class Table;
 class CalcStmt : public Stmt
 {
 public:
-  CalcStmt()                   = default;
-  virtual ~CalcStmt() override = default;
+  CalcStmt()           = default;
+  ~CalcStmt() override = default;
 
-  StmtType type() const override { return StmtType::CALC; }
+  [[nodiscard]] StmtType type() const override { return StmtType::CALC; }
 
-public:
   static RC create(CalcSqlNode &calc_sql, Stmt *&stmt)
   {
-    CalcStmt *calc_stmt     = new CalcStmt();
+    auto *calc_stmt         = new CalcStmt();
     calc_stmt->expressions_ = std::move(calc_sql.expressions);
     stmt                    = calc_stmt;
     return RC::SUCCESS;
   }
 
-public:
   std::vector<std::unique_ptr<Expression>> &expressions() { return expressions_; }
 
 private:

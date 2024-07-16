@@ -21,14 +21,9 @@ See the Mulan PSL v2 for more details. */
 #include "common/os/path.h"
 #include "common/os/pidfile.h"
 #include "common/os/process.h"
-#include "common/os/signal.h"
 #include "global_context.h"
 #include "session/session.h"
-#include "session/session_stage.h"
-#include "sql/plan_cache/plan_cache_stage.h"
-#include "storage/buffer/disk_buffer_pool.h"
 #include "storage/default/default_handler.h"
-#include "storage/trx/trx.h"
 
 using namespace common;
 
@@ -70,7 +65,7 @@ int init_log(ProcessParam *process_cfg, Ini &properties)
     // get log file name
     string key = "LOG_FILE_NAME";
 
-    map<string, string>::iterator it = log_section.find(key);
+    auto it = log_section.find(key);
     if (it == log_section.end()) {
       log_file_name = proc_name + ".log";
       cout << "Not set log file name, use default " << log_file_name << endl;
@@ -84,18 +79,18 @@ int init_log(ProcessParam *process_cfg, Ini &properties)
     key                 = ("LOG_FILE_LEVEL");
     it                  = log_section.find(key);
     if (it != log_section.end()) {
-      int log = (int)log_level;
+      int log = static_cast<int>(log_level);
       str_to_val(it->second, log);
-      log_level = (LOG_LEVEL)log;
+      log_level = static_cast<LOG_LEVEL>(log);
     }
 
     LOG_LEVEL console_level = LOG_LEVEL_INFO;
     key                     = ("LOG_CONSOLE_LEVEL");
     it                      = log_section.find(key);
     if (it != log_section.end()) {
-      int log = (int)console_level;
+      int log = static_cast<int>(console_level);
       str_to_val(it->second, log);
-      console_level = (LOG_LEVEL)log;
+      console_level = static_cast<LOG_LEVEL>(log);
     }
 
     LoggerFactory::init_default(log_file_name, log_level, console_level);
@@ -129,20 +124,16 @@ void cleanup_log()
   }
 }
 
-int prepare_init_seda()
-{
-  return 0;
-}
+int prepare_init_seda() { return 0; }
 
-int init_global_objects(ProcessParam *process_param, Ini &properties)
+int init_global_objects(ProcessParam *process_param, Ini & /*properties*/)
 {
   GCTX.handler_ = new DefaultHandler();
 
   int ret = 0;
 
-  RC rc = GCTX.handler_->init("miniob", 
-                              process_param->trx_kit_name().c_str(),
-                              process_param->durability_mode().c_str());
+  RC rc =
+      GCTX.handler_->init("miniob", process_param->trx_kit_name().c_str(), process_param->durability_mode().c_str());
   if (OB_FAIL(rc)) {
     LOG_ERROR("failed to init handler. rc=%s", strrc(rc));
     return -1;

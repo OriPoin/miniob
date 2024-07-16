@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "net/ring_buffer.h"
+#include <cstdint>
 
 /**
  * @brief 支持以缓存模式写入数据到文件/socket
@@ -25,7 +26,7 @@ See the Mulan PSL v2 for more details. */
 class BufferedWriter
 {
 public:
-  BufferedWriter(int fd);
+  explicit BufferedWriter(int fd);
   BufferedWriter(int fd, int32_t size);
   ~BufferedWriter();
 
@@ -66,7 +67,6 @@ private:
    */
   RC flush_internal(int32_t size);
 
-private:
   int        fd_ = -1;
   RingBuffer buffer_;
 };

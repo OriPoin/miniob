@@ -34,16 +34,15 @@ class SimpleQueue : public Queue<T>
 public:
   using value_type = T;
 
-public:
   SimpleQueue() : Queue<T>() {}
-  virtual ~SimpleQueue() {}
+  virtual ~SimpleQueue() = default;
 
   //! @copydoc Queue::emplace
   int push(value_type &&value) override;
   //! @copydoc Queue::pop
   int pop(value_type &value) override;
   //! @copydoc Queue::size
-  int size() const override;
+  [[nodiscard]] int size() const override;
 
 private:
   mutex             mutex_;

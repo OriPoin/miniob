@@ -17,11 +17,11 @@ See the Mulan PSL v2 for more details. */
 
 namespace common {
 
-TimerSnapshot::TimerSnapshot() {}
+TimerSnapshot::TimerSnapshot() = default;
 
-TimerSnapshot::~TimerSnapshot() {}
+TimerSnapshot::~TimerSnapshot() = default;
 
-double TimerSnapshot::get_tps() { return tps; }
+double TimerSnapshot::get_tps() const { return tps; }
 
 void TimerSnapshot::set_tps(double tps) { this->tps = tps; }
 

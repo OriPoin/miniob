@@ -15,27 +15,21 @@ See the Mulan PSL v2 for more details. */
 #include "net/server.h"
 
 #include <arpa/inet.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
 #include <poll.h>
 
-#include <memory>
-
 #include "common/ini_setting.h"
-#include "common/io/io.h"
-#include "common/lang/mutex.h"
 #include "common/log/log.h"
 #include "event/session_event.h"
-#include "session/session_stage.h"
 #include "net/communicator.h"
 #include "net/cli_communicator.h"
 #include "session/session.h"
@@ -83,7 +77,7 @@ void NetServer::accept(int fd)
 
   int ret = 0;
 
-  int client_fd = ::accept(fd, (struct sockaddr *)&addr, &addrlen);
+  int client_fd = ::accept(fd, reinterpret_cast<struct sockaddr *>(&addr), &addrlen);
   if (client_fd < 0) {
     LOG_ERROR("Failed to accept client's connection, %s", strerror(errno));
     return;
@@ -140,11 +134,11 @@ int NetServer::start()
 {
   if (server_param_.use_std_io) {
     return -1;
-  } else if (server_param_.use_unix_socket) {
-    return start_unix_socket_server();
-  } else {
-    return start_tcp_server();
   }
+  if (server_param_.use_unix_socket) {
+    return start_unix_socket_server();
+  }
+  return start_tcp_server();
 }
 
 int NetServer::start_tcp_server()
@@ -178,7 +172,7 @@ int NetServer::start_tcp_server()
   sa.sin_port        = htons(server_param_.port);
   sa.sin_addr.s_addr = htonl(server_param_.listen_addr);
 
-  ret = ::bind(server_socket_, (struct sockaddr *)&sa, sizeof(sa));
+  ret = ::bind(server_socket_, reinterpret_cast<struct sockaddr *>(&sa), sizeof(sa));
   if (ret < 0) {
     LOG_ERROR("bind(): can not bind server socket, %s", strerror(errno));
     ::close(server_socket_);
@@ -221,7 +215,7 @@ int NetServer::start_unix_socket_server()
   sockaddr.sun_family = PF_UNIX;
   snprintf(sockaddr.sun_path, sizeof(sockaddr.sun_path), "%s", server_param_.unix_socket_path.c_str());
 
-  ret = ::bind(server_socket_, (struct sockaddr *)&sockaddr, sizeof(sockaddr));
+  ret = ::bind(server_socket_, reinterpret_cast<struct sockaddr *>(&sockaddr), sizeof(sockaddr));
   if (ret < 0) {
     LOG_ERROR("bind(): can not bind server socket(path=%s), %s", sockaddr.sun_path, strerror(errno));
     ::close(server_socket_);
@@ -272,7 +266,8 @@ int NetServer::serve()
       if (ret < 0) {
         LOG_WARN("[listen socket] poll error. fd = %d, ret = %d, error=%s", poll_fd.fd, ret, strerror(errno));
         break;
-      } else if (0 == ret) {
+      }
+      if (0 == ret) {
         // LOG_TRACE("poll timeout. fd = %d", poll_fd.fd);
         continue;
       }

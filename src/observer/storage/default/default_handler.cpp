@@ -14,22 +14,19 @@ See the Mulan PSL v2 for more details. */
 
 #include "storage/default/default_handler.h"
 
-#include <string>
 #include <filesystem>
 
 #include "common/lang/string.h"
 #include "common/log/log.h"
-#include "common/os/path.h"
 #include "session/session.h"
 #include "storage/common/condition_filter.h"
-#include "storage/index/bplus_tree.h"
 #include "storage/record/record_manager.h"
 #include "storage/table/table.h"
 #include "storage/trx/trx.h"
 
 using namespace std;
 
-DefaultHandler::DefaultHandler() {}
+DefaultHandler::DefaultHandler() = default;
 
 DefaultHandler::~DefaultHandler() noexcept { destroy(); }
 
@@ -44,9 +41,9 @@ RC DefaultHandler::init(const char *base_dir, const char *trx_kit_name, const ch
     return RC::INTERNAL;
   }
 
-  base_dir_ = base_dir;
-  db_dir_   = db_dir;
-  trx_kit_name_ = trx_kit_name;
+  base_dir_         = base_dir;
+  db_dir_           = db_dir;
+  trx_kit_name_     = trx_kit_name;
   log_handler_name_ = log_handler_name;
 
   const char *sys_db = "sys";
@@ -102,7 +99,7 @@ RC DefaultHandler::create_db(const char *dbname)
   return RC::SUCCESS;
 }
 
-RC DefaultHandler::drop_db(const char *dbname) { return RC::INTERNAL; }
+RC DefaultHandler::drop_db(const char * /*dbname*/) { return RC::INTERNAL; }
 
 RC DefaultHandler::open_db(const char *dbname)
 {
@@ -122,8 +119,8 @@ RC DefaultHandler::open_db(const char *dbname)
 
   // open db
   Db *db  = new Db();
-  RC  ret = RC::SUCCESS;
-  if ((ret = db->init(dbname, dbpath.c_str(), trx_kit_name_.c_str(), log_handler_name_.c_str())) != RC::SUCCESS) {
+  RC  ret = db->init(dbname, dbpath.c_str(), trx_kit_name_.c_str(), log_handler_name_.c_str());
+  if (ret != RC::SUCCESS) {
     LOG_ERROR("Failed to open db: %s. error=%s", dbname, strrc(ret));
     delete db;
   } else {
@@ -132,9 +129,10 @@ RC DefaultHandler::open_db(const char *dbname)
   return ret;
 }
 
-RC DefaultHandler::close_db(const char *dbname) { return RC::UNIMPLENMENT; }
+RC DefaultHandler::close_db(const char * /*dbname*/) { return RC::UNIMPLENMENT; }
 
-RC DefaultHandler::create_table(const char *dbname, const char *relation_name, span<const AttrInfoSqlNode> attributes)
+RC DefaultHandler::create_table(
+    const char *dbname, const char *relation_name, span<const AttrInfoSqlNode> attributes) const
 {
   Db *db = find_db(dbname);
   if (db == nullptr) {
@@ -143,11 +141,11 @@ RC DefaultHandler::create_table(const char *dbname, const char *relation_name, s
   return db->create_table(relation_name, attributes);
 }
 
-RC DefaultHandler::drop_table(const char *dbname, const char *relation_name) { return RC::UNIMPLENMENT; }
+RC DefaultHandler::drop_table(const char * /*dbname*/, const char * /*relation_name*/) { return RC::UNIMPLENMENT; }
 
 Db *DefaultHandler::find_db(const char *dbname) const
 {
-  map<string, Db *>::const_iterator iter = opened_dbs_.find(dbname);
+  auto iter = opened_dbs_.find(dbname);
   if (iter == opened_dbs_.end()) {
     return nullptr;
   }

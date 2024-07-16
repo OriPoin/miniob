@@ -14,12 +14,9 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stddef.h>
-#include <utility>
+#include <cstddef>
 
 #include "common/rc.h"
-#include "common/lang/mutex.h"
-#include "sql/parser/parse.h"
 #include "storage/field/field_meta.h"
 #include "storage/record/record_manager.h"
 #include "storage/table/table.h"
@@ -56,30 +53,32 @@ public:
     UNDEFINED,
   };
 
-public:
   Operation(Type type, Table *table, const RID &rid)
       : type_(type), table_(table), page_num_(rid.page_num), slot_num_(rid.slot_num)
   {}
 
-  Type    type() const { return type_; }
-  int32_t table_id() const { return table_->table_id(); }
-  Table  *table() const { return table_; }
-  PageNum page_num() const { return page_num_; }
-  SlotNum slot_num() const { return slot_num_; }
+  [[nodiscard]] Type    type() const { return type_; }
+  [[nodiscard]] int32_t table_id() const { return table_->table_id(); }
+  [[nodiscard]] Table  *table() const { return table_; }
+  [[nodiscard]] PageNum page_num() const { return page_num_; }
+  [[nodiscard]] SlotNum slot_num() const { return slot_num_; }
 
 private:
   ///< 操作的哪张表。这里直接使用表其实并不准确，因为表中的索引也可能有日志
   Type type_;
 
   Table  *table_ = nullptr;
-  PageNum page_num_;  // TODO use RID instead of page num and slot num
+  PageNum page_num_;  // TODO(unknown): use RID instead of page num and slot num
   SlotNum slot_num_;
 };
 
 class OperationHasher
 {
 public:
-  size_t operator()(const Operation &op) const { return (((size_t)op.page_num()) << 32) | (op.slot_num()); }
+  size_t operator()(const Operation &op) const
+  {
+    return ((static_cast<size_t>(op.page_num())) << 32) | (op.slot_num());
+  }
 };
 
 class OperationEqualer
@@ -109,12 +108,11 @@ public:
     MVCC,     ///< 支持MVCC的事务管理器
   };
 
-public:
   TrxKit()          = default;
   virtual ~TrxKit() = default;
 
-  virtual RC                       init()             = 0;
-  virtual const vector<FieldMeta> *trx_fields() const = 0;
+  virtual RC                                     init()             = 0;
+  [[nodiscard]] virtual const vector<FieldMeta> *trx_fields() const = 0;
 
   virtual Trx *create_trx(LogHandler &log_handler) = 0;
 
@@ -129,7 +127,6 @@ public:
 
   virtual LogReplayer *create_log_replayer(Db &db, LogHandler &log_handler) = 0;
 
-public:
   static TrxKit *create(const char *name);
 };
 
@@ -153,5 +150,5 @@ public:
 
   virtual RC redo(Db *db, const LogEntry &log_entry) = 0;
 
-  virtual int32_t id() const = 0;
+  [[nodiscard]] virtual int32_t id() const = 0;
 };

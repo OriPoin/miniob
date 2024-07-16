@@ -33,7 +33,7 @@ RC FilterStmt::create(Db *db, Table *default_table, std::unordered_map<std::stri
   RC rc = RC::SUCCESS;
   stmt  = nullptr;
 
-  FilterStmt *tmp_stmt = new FilterStmt();
+  auto *tmp_stmt = new FilterStmt();
   for (int i = 0; i < condition_num; i++) {
     FilterUnit *filter_unit = nullptr;
 

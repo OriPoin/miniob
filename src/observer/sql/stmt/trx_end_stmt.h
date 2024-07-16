@@ -14,9 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "sql/stmt/stmt.h"
 
 /**
@@ -26,10 +23,10 @@ See the Mulan PSL v2 for more details. */
 class TrxEndStmt : public Stmt
 {
 public:
-  TrxEndStmt(StmtType type) : type_(type) {}
-  virtual ~TrxEndStmt() = default;
+  explicit TrxEndStmt(StmtType type) : type_(type) {}
+  ~TrxEndStmt() override = default;
 
-  StmtType type() const override { return type_; }
+  [[nodiscard]] StmtType type() const override { return type_; }
 
   static RC create(SqlCommandFlag flag, Stmt *&stmt)
   {

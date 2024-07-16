@@ -27,8 +27,8 @@ namespace common {
 class MetricsRegistry
 {
 public:
-  MetricsRegistry(){};
-  virtual ~MetricsRegistry(){};
+  MetricsRegistry()          = default;
+  virtual ~MetricsRegistry() = default;
 
   void register_metric(const std::string &tag, Metric *metric);
   void unregister(const std::string &tag);

@@ -26,11 +26,11 @@ class DeleteStmt;
 class DeletePhysicalOperator : public PhysicalOperator
 {
 public:
-  DeletePhysicalOperator(Table *table) : table_(table) {}
+  explicit DeletePhysicalOperator(Table *table) : table_(table) {}
 
-  virtual ~DeletePhysicalOperator() = default;
+  ~DeletePhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::DELETE; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::DELETE; }
 
   RC open(Trx *trx) override;
   RC next() override;

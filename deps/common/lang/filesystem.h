@@ -13,5 +13,3 @@ See the Mulan PSL v2 for more details. */
 #include <filesystem>
 
 #include "common/lang/system_error.h"
-
-namespace filesystem = std::filesystem;

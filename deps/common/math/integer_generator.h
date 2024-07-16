@@ -27,9 +27,9 @@ public:
   IntegerGenerator(IntegerGenerator &&)                 = delete;
   IntegerGenerator &operator=(const IntegerGenerator &) = delete;
 
-  int next() { return distrib_(rd_); }
-  int min() const { return distrib_.min(); }
-  int max() const { return distrib_.max(); }
+  int               next() { return distrib_(rd_); }
+  [[nodiscard]] int min() const { return distrib_.min(); }
+  [[nodiscard]] int max() const { return distrib_.max(); }
 
 private:
   random_device              rd_;

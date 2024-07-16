@@ -14,10 +14,10 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <assert.h>
-#include <errno.h>
+#include <cassert>
+#include <cerrno>
 #include <pthread.h>
-#include <string.h>
+#include <cstring>
 #include <sys/time.h>
 
 #include "common/defs.h"
@@ -37,8 +37,7 @@ const int LOG_STATUS_OK  = 0;
 const int LOG_STATUS_ERR = 1;
 const int LOG_MAX_LINE   = 100000;
 
-typedef enum
-{
+using LOG_LEVEL = enum LOG_LEVEL {
   LOG_LEVEL_PANIC = 0,
   LOG_LEVEL_ERR   = 1,
   LOG_LEVEL_WARN  = 2,
@@ -46,21 +45,19 @@ typedef enum
   LOG_LEVEL_DEBUG = 4,
   LOG_LEVEL_TRACE = 5,
   LOG_LEVEL_LAST
-} LOG_LEVEL;
+};
 
-typedef enum
-{
-  LOG_ROTATE_BYDAY = 0,
-  LOG_ROTATE_BYSIZE,
-  LOG_ROTATE_LAST
-} LOG_ROTATE;
+using LOG_ROTATE = enum LOG_ROTATE {
+  LOG_ROTATE_BYDAY  = 0,
+  LOG_ROTATE_BYSIZE = 1,
+  LOG_ROTATE_LAST   = 2,
+};
 
 class Log
 {
 public:
-  Log(const string &log_name, const LOG_LEVEL log_level = LOG_LEVEL_INFO,
-      const LOG_LEVEL console_level = LOG_LEVEL_WARN);
-  ~Log(void);
+  explicit Log(const string &log_name, LOG_LEVEL log_level = LOG_LEVEL_INFO, LOG_LEVEL console_level = LOG_LEVEL_WARN);
+  ~Log();
 
   static int init(const string &log_file);
 
@@ -91,18 +88,18 @@ public:
   template <class T>
   int trace(T message);
 
-  int output(const LOG_LEVEL level, const char *module, const char *prefix, const char *f, ...);
+  int output(LOG_LEVEL level, const char *module, const char *prefix, const char *f, ...);
 
-  int       set_console_level(const LOG_LEVEL console_level);
+  int       set_console_level(LOG_LEVEL console_level);
   LOG_LEVEL get_console_level();
 
-  int       set_log_level(const LOG_LEVEL log_level);
+  int       set_log_level(LOG_LEVEL log_level);
   LOG_LEVEL get_log_level();
 
   int        set_rotate_type(LOG_ROTATE rotate_type);
   LOG_ROTATE get_rotate_type();
 
-  const char *prefix_msg(const LOG_LEVEL level);
+  const char *prefix_msg(LOG_LEVEL level);
 
   /**
    * Set Default Module list
@@ -110,9 +107,9 @@ public:
    * it will output whatever output level is lower than log_level_ or not
    */
   void set_default_module(const string &modules);
-  bool check_output(const LOG_LEVEL log_level, const char *module);
+  bool check_output(LOG_LEVEL log_level, const char *module);
 
-  int rotate(const int year = 0, const int month = 0, const int day = 0);
+  int rotate(int year = 0, int month = 0, int day = 0);
 
   /**
    * @brief 设置一个在日志中打印当前上下文信息的回调函数
@@ -127,34 +124,33 @@ private:
 
   int rotate_by_size();
   int rename_old_logs();
-  int rotate_by_day(const int year, const int month, const int day);
+  int rotate_by_day(int year, int month, int day);
 
   template <class T>
-  int out(const LOG_LEVEL console_level, const LOG_LEVEL log_level, T &message);
+  int out(LOG_LEVEL console_level, LOG_LEVEL log_level, T &message);
 
-private:
   pthread_mutex_t lock_;
   ofstream        ofs_;
   string          log_name_;
   LOG_LEVEL       log_level_;
   LOG_LEVEL       console_level_;
 
-  typedef struct _LogDate
+  using LogDate = struct LogDate
   {
     int year_;
     int mon_;
     int day_;
-  } LogDate;
+  };
   LogDate    log_date_;
   int        log_line_;
   int        log_max_line_;
   LOG_ROTATE rotate_type_;
 
-  typedef map<LOG_LEVEL, string> LogPrefixMap;
-  LogPrefixMap                   prefix_map_;
+  using LogPrefixMap = map<LOG_LEVEL, string>;
+  LogPrefixMap prefix_map_;
 
-  typedef set<string> DefaultSet;
-  DefaultSet          default_set_;
+  using DefaultSet = set<string>;
+  DefaultSet default_set_;
 
   function<intptr_t()> context_getter_;
 };
@@ -234,10 +230,10 @@ extern Log *g_log;
 #define LOG_TRACE(fmt, ...) LOG_OUTPUT(common::LOG_LEVEL_TRACE, fmt, ##__VA_ARGS__)
 
 template <class T>
-Log &Log::operator<<(T msg)
+Log &Log::operator<<(T message)
 {
   // at this time, the input level is the default log level
-  out(console_level_, log_level_, msg);
+  out(console_level_, log_level_, message);
   return *this;
 }
 
@@ -278,7 +274,7 @@ int Log::trace(T message)
 }
 
 template <class T>
-int Log::out(const LOG_LEVEL console_level, const LOG_LEVEL log_level, T &msg)
+int Log::out(const LOG_LEVEL console_level, const LOG_LEVEL log_level, T &message)
 {
   bool locked = false;
   if (console_level < LOG_LEVEL_PANIC || console_level > console_level_ || log_level < LOG_LEVEL_PANIC ||
@@ -289,14 +285,14 @@ int Log::out(const LOG_LEVEL console_level, const LOG_LEVEL log_level, T &msg)
     char prefix[ONE_KILO] = {0};
     LOG_HEAD(prefix, log_level);
     if (LOG_LEVEL_PANIC <= console_level && console_level <= console_level_) {
-      cout << prefix_map_[console_level] << msg;
+      cout << prefix_map_[console_level] << message;
     }
 
     if (LOG_LEVEL_PANIC <= log_level && log_level <= log_level_) {
       pthread_mutex_lock(&lock_);
       locked = true;
       ofs_ << prefix;
-      ofs_ << msg;
+      ofs_ << message;
       ofs_.flush();
       log_line_++;
       pthread_mutex_unlock(&lock_);

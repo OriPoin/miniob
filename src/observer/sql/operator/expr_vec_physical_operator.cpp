@@ -10,8 +10,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/log/log.h"
 #include "sql/operator/expr_vec_physical_operator.h"
-#include "sql/expr/expression_tuple.h"
-#include "sql/expr/composite_tuple.h"
 
 using namespace std;
 using namespace common;
@@ -42,7 +40,8 @@ RC ExprVecPhysicalOperator::next(Chunk &chunk)
   PhysicalOperator &child = *children_[0];
   chunk.reset();
   evaled_chunk_.reset();
-  if (OB_SUCC(rc = child.next(chunk_))) {
+  rc = child.next(chunk_);
+  if (OB_SUCC(rc)) {
     for (size_t i = 0; i < expressions_.size(); i++) {
       auto column = std::make_unique<Column>();
       expressions_[i]->get_column(chunk_, *column);

@@ -12,12 +12,12 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/6/13.
 //
 
-#include "common/log/log.h"
+#include <strings.h>
 #include "common/types.h"
 #include "sql/stmt/create_table_stmt.h"
 #include "event/sql_debug.h"
 
-RC CreateTableStmt::create(Db *db, const CreateTableSqlNode &create_table, Stmt *&stmt)
+RC CreateTableStmt::create(Db * /*db*/, const CreateTableSqlNode &create_table, Stmt *&stmt)
 {
   StorageFormat storage_format = StorageFormat::UNKNOWN_FORMAT;
   if (create_table.storage_format.length() == 0) {
@@ -33,7 +33,8 @@ RC CreateTableStmt::create(Db *db, const CreateTableSqlNode &create_table, Stmt 
   return RC::SUCCESS;
 }
 
-StorageFormat CreateTableStmt::get_storage_format(const char *format_str) {
+StorageFormat CreateTableStmt::get_storage_format(const char *format_str)
+{
   StorageFormat format = StorageFormat::UNKNOWN_FORMAT;
   if (0 == strcasecmp(format_str, "ROW")) {
     format = StorageFormat::ROW_FORMAT;

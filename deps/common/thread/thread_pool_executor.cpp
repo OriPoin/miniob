@@ -12,6 +12,7 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/01/11.
 //
 
+#include <sys/types.h>
 #include <thread>
 
 #include "common/thread/thread_pool_executor.h"
@@ -23,13 +24,13 @@ using namespace std;
 
 namespace common {
 
-int ThreadPoolExecutor::init(const char *name, int core_pool_size, int max_pool_size, long keep_alive_time_ms)
+int ThreadPoolExecutor::init(const char *name, int core_pool_size, int max_pool_size, u_int64_t keep_alive_time_ms)
 {
   unique_ptr<Queue<unique_ptr<Runnable>>> queue_ptr(new (nothrow) SimpleQueue<unique_ptr<Runnable>>());
   return init(name, core_pool_size, max_pool_size, keep_alive_time_ms, std::move(queue_ptr));
 }
 
-int ThreadPoolExecutor::init(const char *name, int core_pool_size, int max_pool_size, long keep_alive_time_ms,
+int ThreadPoolExecutor::init(const char *name, int core_pool_size, int max_pool_size, u_int64_t keep_alive_time_ms,
     unique_ptr<Queue<unique_ptr<Runnable>>> &&work_queue)
 {
   if (state_ != State::NEW) {
@@ -182,7 +183,7 @@ int ThreadPoolExecutor::create_thread(bool core_thread)
 
 int ThreadPoolExecutor::create_thread_locked(bool core_thread)
 {
-  thread *thread_ptr = new (nothrow) thread(&ThreadPoolExecutor::thread_func, this);
+  auto *thread_ptr = new (nothrow) thread(&ThreadPoolExecutor::thread_func, this);
   if (thread_ptr == nullptr) {
     LOG_ERROR("create thread failed");
     return -1;

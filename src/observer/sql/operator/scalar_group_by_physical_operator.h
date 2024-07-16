@@ -23,10 +23,10 @@ See the Mulan PSL v2 for more details. */
 class ScalarGroupByPhysicalOperator : public GroupByPhysicalOperator
 {
 public:
-  ScalarGroupByPhysicalOperator(std::vector<Expression *> &&expressions);
-  virtual ~ScalarGroupByPhysicalOperator() = default;
+  explicit ScalarGroupByPhysicalOperator(std::vector<Expression *> &&expressions);
+  ~ScalarGroupByPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::SCALAR_GROUP_BY; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::SCALAR_GROUP_BY; }
 
   RC open(Trx *trx) override;
   RC next() override;

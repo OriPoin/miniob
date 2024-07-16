@@ -33,5 +33,5 @@ public:
   CommandExecutor()          = default;
   virtual ~CommandExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event);
+  static RC execute(SQLStageEvent *sql_event);
 };

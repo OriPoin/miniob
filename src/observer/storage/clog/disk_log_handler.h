@@ -17,7 +17,6 @@ See the Mulan PSL v2 for more details. */
 #include "common/types.h"
 #include "common/rc.h"
 #include "common/lang/vector.h"
-#include "common/lang/deque.h"
 #include "common/lang/memory.h"
 #include "common/lang/thread.h"
 #include "storage/clog/log_module.h"
@@ -48,8 +47,8 @@ class LogReplayer;
 class DiskLogHandler : public LogHandler
 {
 public:
-  DiskLogHandler()          = default;
-  virtual ~DiskLogHandler() = default;
+  DiskLogHandler()           = default;
+  ~DiskLogHandler() override = default;
 
   /**
    * @brief 初始化日志模块
@@ -98,9 +97,9 @@ public:
   RC wait_lsn(LSN lsn) override;
 
   /// @brief 当前的LSN
-  LSN current_lsn() const override { return entry_buffer_.current_lsn(); }
+  [[nodiscard]] LSN current_lsn() const override { return entry_buffer_.current_lsn(); }
   /// @brief 当前刷新到哪个日志
-  LSN current_flushed_lsn() const { return entry_buffer_.flushed_lsn(); }
+  [[nodiscard]] LSN current_flushed_lsn() const { return entry_buffer_.flushed_lsn(); }
 
 private:
   /**
@@ -112,13 +111,11 @@ private:
    */
   RC _append(LSN &lsn, LogModule module, vector<char> &&data) override;
 
-private:
   /**
    * @brief 刷新日志的线程函数
    */
   void thread_func();
 
-private:
   unique_ptr<thread> thread_;          /// 刷新日志的线程
   atomic_bool        running_{false};  /// 是否还要继续运行
 

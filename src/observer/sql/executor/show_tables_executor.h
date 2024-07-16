@@ -33,7 +33,7 @@ public:
   ShowTablesExecutor()          = default;
   virtual ~ShowTablesExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event)
+  static RC execute(SQLStageEvent *sql_event)
   {
     SqlResult    *sql_result    = sql_event->session_event()->sql_result();
     SessionEvent *session_event = sql_event->session_event();
@@ -47,7 +47,7 @@ public:
     tuple_schema.append_cell(TupleCellSpec("", "Tables_in_SYS", "Tables_in_SYS"));
     sql_result->set_tuple_schema(tuple_schema);
 
-    auto oper = new StringListPhysicalOperator;
+    auto *oper = new StringListPhysicalOperator;
     for (const std::string &s : all_tables) {
       oper->append(s);
     }

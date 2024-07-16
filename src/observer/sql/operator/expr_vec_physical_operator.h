@@ -19,11 +19,11 @@ See the Mulan PSL v2 for more details. */
 class ExprVecPhysicalOperator : public PhysicalOperator
 {
 public:
-  ExprVecPhysicalOperator(std::vector<Expression *> &&expressions);
+  explicit ExprVecPhysicalOperator(std::vector<Expression *> &&expressions);
 
-  virtual ~ExprVecPhysicalOperator() = default;
+  ~ExprVecPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::EXPR_VEC; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::EXPR_VEC; }
 
   RC open(Trx *trx) override;
   RC next(Chunk &chunk) override;

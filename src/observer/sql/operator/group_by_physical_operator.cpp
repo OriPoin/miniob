@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/log/log.h"
 #include "sql/operator/group_by_physical_operator.h"
-#include "sql/expr/expression_tuple.h"
 #include "sql/expr/composite_tuple.h"
 
 using namespace std;
@@ -76,6 +75,7 @@ RC GroupByPhysicalOperator::evaluate(GroupValueType &group_value)
   RC rc = RC::SUCCESS;
 
   vector<TupleCellSpec> aggregator_names;
+  aggregator_names.reserve(aggregate_expressions_.size());
   for (Expression *expr : aggregate_expressions_) {
     aggregator_names.emplace_back(expr->name());
   }

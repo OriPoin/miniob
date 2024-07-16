@@ -15,13 +15,13 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <pthread.h>
-#include <string.h>
+#include <cstring>
+#include <sys/types.h>
 
 #include "common/lang/mutex.h"
 #include "common/lang/string.h"
 #include "common/lang/atomic.h"
 #include "common/lang/unordered_map.h"
-#include "common/log/log.h"
 #include "common/types.h"
 #include "storage/buffer/page.h"
 
@@ -34,16 +34,16 @@ class FrameId
 public:
   FrameId() = default;
   FrameId(int buffer_pool_id, PageNum page_num);
-  bool    equal_to(const FrameId &other) const;
-  bool    operator==(const FrameId &other) const;
-  size_t  hash() const;
-  int     buffer_pool_id() const;
-  PageNum page_num() const;
+  [[nodiscard]] bool    equal_to(const FrameId &other) const;
+  bool                  operator==(const FrameId &other) const;
+  [[nodiscard]] size_t  hash() const;
+  [[nodiscard]] int     buffer_pool_id() const;
+  [[nodiscard]] PageNum page_num() const;
 
   void set_buffer_pool_id(int buffer_pool_id) { buffer_pool_id_ = buffer_pool_id; }
   void set_page_num(PageNum page_num) { page_num_ = page_num; }
 
-  string to_string() const;
+  [[nodiscard]] string to_string() const;
 
 private:
   int     buffer_pool_id_ = -1;
@@ -65,10 +65,10 @@ private:
 class Frame
 {
 public:
-  ~Frame()
-  {
-    // LOG_DEBUG("deallocate frame. this=%p, lbt=%s", this, common::lbt());
-  }
+  ~Frame() = default;
+  // {
+  // LOG_DEBUG("deallocate frame. this=%p, lbt=%s", this, common::lbt());
+  // }
 
   /**
    * @brief reinit 和 reset 在 MemPoolSimple 中使用
@@ -171,11 +171,11 @@ public:
 private:
   friend class BufferPool;
 
-  bool          dirty_ = false;
-  atomic<int>   pin_count_{0};
-  unsigned long acc_time_ = 0;
-  FrameId       frame_id_;
-  Page          page_;
+  bool        dirty_ = false;
+  atomic<int> pin_count_{0};
+  u_int64_t   acc_time_ = 0;
+  FrameId     frame_id_;
+  Page        page_;
 
   /// 在非并发编译时，加锁解锁动作将什么都不做
   common::RecursiveSharedMutex lock_;

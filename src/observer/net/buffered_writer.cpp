@@ -12,13 +12,12 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/06/16.
 //
 
-#include <algorithm>
 #include <sys/errno.h>
 #include <unistd.h>
 
 #include "net/buffered_writer.h"
 
-BufferedWriter::BufferedWriter(int fd) : fd_(fd), buffer_() {}
+BufferedWriter::BufferedWriter(int fd) : fd_(fd) {}
 
 BufferedWriter::BufferedWriter(int fd, int32_t size) : fd_(fd), buffer_(size) {}
 
@@ -114,9 +113,8 @@ RC BufferedWriter::flush_internal(int32_t size)
         if (errno == EAGAIN || errno == EINTR) {
           tmp_write_size = 0;
           continue;
-        } else {
-          return RC::IOERR_WRITE;
         }
+        return RC::IOERR_WRITE;
       }
     }
 

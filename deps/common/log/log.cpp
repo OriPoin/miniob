@@ -12,10 +12,10 @@ See the Mulan PSL v2 for more details. */
 // Created by Longda on 2010
 //
 
-#include <assert.h>
+#include <cassert>
 #include <execinfo.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 
 #include "common/lang/string.h"
 #include "common/lang/functional.h"
@@ -50,7 +50,7 @@ Log::Log(const string &log_file_name, const LOG_LEVEL log_level, const LOG_LEVEL
   context_getter_ = []() { return 0; };
 }
 
-Log::~Log(void)
+Log::~Log()
 {
   pthread_mutex_lock(&lock_);
   if (ofs_.is_open()) {
@@ -66,8 +66,6 @@ void Log::check_param_valid()
   assert(!log_name_.empty());
   assert(LOG_LEVEL_PANIC <= log_level_ && log_level_ < LOG_LEVEL_LAST);
   assert(LOG_LEVEL_PANIC <= console_level_ && console_level_ < LOG_LEVEL_LAST);
-
-  return;
 }
 
 bool Log::check_output(const LOG_LEVEL level, const char *module)
@@ -215,7 +213,7 @@ int Log::rename_old_logs()
 
   while (log_index < MAX_LOG_NUM) {
     string log_name = log_name_ + "." + size_to_pad_str(log_index, 3);
-    int         result   = access(log_name.c_str(), R_OK);
+    int    result   = access(log_name.c_str(), R_OK);
     if (result) {
       break;
     }
@@ -252,7 +250,8 @@ int Log::rotate_by_size()
     ofs_.open(log_name_.c_str(), ios_base::out | ios_base::app);
     log_line_ = 0;
     return LOG_STATUS_OK;
-  } else if (0 <= log_line_ && log_line_ < log_max_line_) {
+  }
+  if (0 <= log_line_ && log_line_ < log_max_line_) {
     // Don't need rotate
     return LOG_STATUS_OK;
   } else {
@@ -270,7 +269,7 @@ int Log::rotate_by_size()
     char log_index_str[4] = {0};
     snprintf(log_index_str, sizeof(log_index_str), "%03d", 1);
     string log_name_new = log_name_ + "." + log_index_str;
-    result                   = rename(log_name_.c_str(), log_name_new.c_str());
+    result              = rename(log_name_.c_str(), log_name_new.c_str());
     if (result) {
       cerr << "Failed to rename " << log_name_ << " to " << log_name_new << endl;
     }

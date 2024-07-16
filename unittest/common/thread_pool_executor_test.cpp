@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 #include "gtest/gtest.h"
 #include "common/lang/memory.h"
 #include "common/lang/atomic.h"
-#include "common/queue/queue.h"
 #include "common/queue/simple_queue.h"
 #include "common/thread/runnable.h"
 #include "common/thread/thread_pool_executor.h"
@@ -45,7 +44,7 @@ public:
   virtual void run() override
   {
     int sleep_ms = min_ms_ + rand() % (max_ms_ - min_ms_);
-    this_thread::sleep_for(chrono::milliseconds(sleep_ms));
+    this_thread::sleep_for(std::chrono::milliseconds(sleep_ms));
   }
 
 private:

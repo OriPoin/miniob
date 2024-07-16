@@ -22,7 +22,7 @@ namespace common {
 class ConsoleReporter : public Reporter
 {
 public:
-  void report(const std::string &tag, Metric *metric);
+  void report(const std::string &tag, Metric *metric) override;
 };
 
 ConsoleReporter *get_console_reporter();

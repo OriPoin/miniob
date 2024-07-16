@@ -21,26 +21,25 @@ namespace common {
 
 Sampler *&get_sampler()
 {
-  static Sampler *g_sampler = new Sampler();
+  static auto *g_sampler = new Sampler();
 
   return g_sampler;
 }
 
-Sampler::Sampler() : random_() {}
+Sampler::Sampler() = default;
 
-Sampler::~Sampler() {}
+Sampler::~Sampler() = default;
 
 bool Sampler::sampling()
 {
   int v = random_.next(RANGE_SIZE);
   if (v <= ratio_num_) {
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
-double Sampler::get_ratio() { return ratio_; }
+double Sampler::get_ratio() const { return ratio_; }
 
 void Sampler::set_ratio(double ratio)
 {

@@ -14,7 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/explain_physical_operator.h"
 #include "common/log/log.h"
-#include <sstream>
 
 using namespace std;
 
@@ -67,7 +66,7 @@ RC ExplainPhysicalOperator::next(Chunk &chunk)
   }
   generate_physical_plan();
 
-  Value         cell;
+  Value cell;
   cell.set_string(physical_plan_.c_str());
   auto column = make_unique<Column>();
   column->init(cell);

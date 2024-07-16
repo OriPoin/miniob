@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/join_physical_operator.h"
 
-NestedLoopJoinPhysicalOperator::NestedLoopJoinPhysicalOperator() {}
+NestedLoopJoinPhysicalOperator::NestedLoopJoinPhysicalOperator() = default;
 
 RC NestedLoopJoinPhysicalOperator::open(Trx *trx)
 {

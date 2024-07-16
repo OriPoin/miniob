@@ -14,9 +14,9 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include "sql/expr/expression.h"
 #include "sql/parser/parse_defs.h"
 #include "sql/stmt/stmt.h"
+#include "storage/field/field.h"
 #include <unordered_map>
 #include <vector>
 
@@ -46,18 +46,18 @@ struct FilterObj
 class FilterUnit
 {
 public:
-  FilterUnit() = default;
-  ~FilterUnit() {}
+  FilterUnit()  = default;
+  ~FilterUnit() = default;
 
   void set_comp(CompOp comp) { comp_ = comp; }
 
-  CompOp comp() const { return comp_; }
+  [[nodiscard]] CompOp comp() const { return comp_; }
 
   void set_left(const FilterObj &obj) { left_ = obj; }
   void set_right(const FilterObj &obj) { right_ = obj; }
 
-  const FilterObj &left() const { return left_; }
-  const FilterObj &right() const { return right_; }
+  [[nodiscard]] const FilterObj &left() const { return left_; }
+  [[nodiscard]] const FilterObj &right() const { return right_; }
 
 private:
   CompOp    comp_ = NO_OP;
@@ -75,10 +75,8 @@ public:
   FilterStmt() = default;
   virtual ~FilterStmt();
 
-public:
-  const std::vector<FilterUnit *> &filter_units() const { return filter_units_; }
+  [[nodiscard]] const std::vector<FilterUnit *> &filter_units() const { return filter_units_; }
 
-public:
   static RC create(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
       const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt);
 

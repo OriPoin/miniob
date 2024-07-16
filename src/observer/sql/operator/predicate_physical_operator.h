@@ -26,11 +26,11 @@ class FilterStmt;
 class PredicatePhysicalOperator : public PhysicalOperator
 {
 public:
-  PredicatePhysicalOperator(std::unique_ptr<Expression> expr);
+  explicit PredicatePhysicalOperator(std::unique_ptr<Expression> expr);
 
-  virtual ~PredicatePhysicalOperator() = default;
+  ~PredicatePhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::PREDICATE; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::PREDICATE; }
 
   RC open(Trx *trx) override;
   RC next() override;

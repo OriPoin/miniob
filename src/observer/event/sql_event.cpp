@@ -14,10 +14,11 @@ See the Mulan PSL v2 for more details. */
 
 #include "event/sql_event.h"
 
-#include "event/session_event.h"
-#include "sql/stmt/stmt.h"
+#include <utility>
 
-SQLStageEvent::SQLStageEvent(SessionEvent *event, const string &sql) : session_event_(event), sql_(sql) {}
+#include "event/session_event.h"
+
+SQLStageEvent::SQLStageEvent(SessionEvent *event, string sql) : session_event_(event), sql_(std::move(sql)) {}
 
 SQLStageEvent::~SQLStageEvent() noexcept
 {

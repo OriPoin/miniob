@@ -12,13 +12,9 @@ See the Mulan PSL v2 for more details. */
 // Created by Longda on 2010
 //
 
-#include <errno.h>
-#include <string.h>
-
-#include <fstream>
+#include <cstring>
 
 #include "common/conf/ini.h"
-#include "common/defs.h"
 #include "common/lang/iostream.h"
 #include "common/lang/string.h"
 #include "common/lang/utility.h"
@@ -30,9 +26,9 @@ namespace common {
 const string              Ini::DEFAULT_SECTION = string("");
 const map<string, string> Ini::empty_map_;
 
-Ini::Ini() {}
+Ini::Ini() = default;
 
-Ini::~Ini() {}
+Ini::~Ini() = default;
 
 void Ini::insert_session(const string &session_name)
 {
@@ -44,7 +40,7 @@ void Ini::insert_session(const string &session_name)
 
 map<string, string> *Ini::switch_session(const string &session_name)
 {
-  SessionsMap::iterator it = sections_.find(session_name);
+  auto it = sections_.find(session_name);
   if (it != sections_.end()) {
     return &it->second;
   }
@@ -62,7 +58,7 @@ map<string, string> *Ini::switch_session(const string &session_name)
 
 const map<string, string> &Ini::get(const string &section)
 {
-  SessionsMap::iterator it = sections_.find(section);
+  auto it = sections_.find(section);
   if (it == sections_.end()) {
     return empty_map_;
   }
@@ -74,7 +70,7 @@ string Ini::get(const string &key, const string &defaultValue, const string &sec
 {
   map<string, string> section_map = get(section);
 
-  map<string, string>::iterator it = section_map.find(key);
+  auto it = section_map.find(key);
   if (it == section_map.end()) {
     return defaultValue;
   }
@@ -171,10 +167,9 @@ int Ini::load(const string &file_name)
         // remove the last character
         line_entry = line_entry.substr(0, line_entry.size() - 1);
         continue;
-      } else {
-        continue_last_line = false;
-        insert_entry(current_session, line_entry);
       }
+      continue_last_line = false;
+      insert_entry(current_session, line_entry);
     }
     ifs.close();
 
@@ -197,26 +192,24 @@ void Ini::to_string(string &output_str)
 
   output_str += "Begin dump configuration\n";
 
-  for (SessionsMap::iterator it = sections_.begin(); it != sections_.end(); it++) {
+  for (auto &section : sections_) {
     output_str += CFG_SESSION_START_TAG;
-    output_str += it->first;
+    output_str += section.first;
     output_str += CFG_SESSION_END_TAG;
     output_str += "\n";
 
-    map<string, string> &section_map = it->second;
+    map<string, string> &section_map = section.second;
 
-    for (map<string, string>::iterator sub_it = section_map.begin(); sub_it != section_map.end(); sub_it++) {
-      output_str += sub_it->first;
+    for (auto &sub_it : section_map) {
+      output_str += sub_it.first;
       output_str += "=";
-      output_str += sub_it->second;
+      output_str += sub_it.second;
       output_str += "\n";
     }
     output_str += "\n";
   }
 
   output_str += "Finish dump configuration \n";
-
-  return;
 }
 
 //! Accessor function which wraps global properties object

@@ -36,20 +36,20 @@ public:
    * @details 参考MySQL或MariaDB的手册，服务端要首先向客户端发送一个握手包，等客户端回复后，
    * 再回复一个OkPacket或ErrPacket
    */
-  virtual RC init(int fd, unique_ptr<Session> session, const string &addr) override;
+  RC init(int fd, unique_ptr<Session> session, const string &addr) override;
 
   /**
    * @brief 有新的消息到达时，接收消息
    * @details 因为MySQL协议的特殊性，收到数据后不一定需要向后流转，比如握手包
    */
-  virtual RC read_event(SessionEvent *&event) override;
+  RC read_event(SessionEvent *&event) override;
 
   /**
    * @brief 将处理结果返回给客户端
    * @param[in] event 任务数据，包括处理的结果
    * @param[out] need_disconnect 是否需要断开连接
    */
-  virtual RC write_result(SessionEvent *event, bool &need_disconnect) override;
+  RC write_result(SessionEvent *event, bool &need_disconnect) override;
 
 private:
   /**
@@ -94,7 +94,6 @@ private:
   RC write_tuple_result(SqlResult *sql_result, vector<char> &packet, int &affected_rows, bool &need_disconnect);
   RC write_chunk_result(SqlResult *sql_result, vector<char> &packet, int &affected_rows, bool &need_disconnect);
 
-private:
   //! 握手阶段(鉴权)，需要做一些特殊处理，所以加个字段单独标记
   bool authed_ = false;
 

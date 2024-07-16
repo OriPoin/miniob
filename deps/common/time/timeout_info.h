@@ -15,7 +15,7 @@ See the Mulan PSL v2 for more details. */
 #ifndef __COMMON_TIME_TIMEOUT_INFO_H__
 #define __COMMON_TIME_TIMEOUT_INFO_H__
 
-#include <time.h>
+#include <ctime>
 
 #include "common/lang/mutex.h"
 namespace common {
@@ -34,7 +34,7 @@ public:
    * Constructor
    * @param[in] deadline_  deadline_ of this timeout
    */
-  TimeoutInfo(time_t deadline_);
+  explicit TimeoutInfo(time_t deadline_);
 
   // Increase ref count
   void attach();

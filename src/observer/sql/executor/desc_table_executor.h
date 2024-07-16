@@ -28,5 +28,5 @@ public:
   DescTableExecutor()          = default;
   virtual ~DescTableExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event);
+  static RC execute(SQLStageEvent *sql_event);
 };

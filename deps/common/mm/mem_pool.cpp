@@ -12,9 +12,10 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include "common/mm/mem_pool.h"
+#include <cstddef>
 namespace common {
 
-int MemPoolItem::init(int item_size, bool dynamic, int pool_num, int item_num_per_pool)
+int MemPoolItem::init(size_t item_size, bool dynamic, int pool_num, int item_num_per_pool)
 {
   if (pools.empty() == false) {
     LOG_WARN("Memory pool has been initialized, but still begin to be initialized, this->name:%s.", this->name.c_str());
@@ -57,9 +58,7 @@ void MemPoolItem::cleanup()
   frees.clear();
   this->size = 0;
 
-  for (list<void *>::iterator iter = pools.begin(); iter != pools.end(); iter++) {
-    void *pool = *iter;
-
+  for (auto *pool : pools) {
     ::free(pool);
   }
   pools.clear();
@@ -88,8 +87,8 @@ int MemPoolItem::extend()
   pools.push_back(pool);
   this->size += item_num_per_pool;
   for (int i = 0; i < item_num_per_pool; i++) {
-    char *item = (char *)pool + i * item_size;
-    frees.push_back((void *)item);
+    char *item = static_cast<char *>(pool) + i * item_size;
+    frees.push_back(reinterpret_cast<void *>(item));
   }
   MUTEX_UNLOCK(&this->mutex);
 
@@ -147,6 +146,6 @@ void MemPoolItem::free(void *buf)
   frees.push_back(buf);
 
   MUTEX_UNLOCK(&this->mutex);
-  return;  // TODO for test
+  // TODO(unknown): for test
 }
 }  // namespace common

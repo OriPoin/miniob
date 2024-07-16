@@ -23,10 +23,10 @@ See the Mulan PSL v2 for more details. */
 class ExplainPhysicalOperator : public PhysicalOperator
 {
 public:
-  ExplainPhysicalOperator()          = default;
-  virtual ~ExplainPhysicalOperator() = default;
+  ExplainPhysicalOperator()           = default;
+  ~ExplainPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::EXPLAIN; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::EXPLAIN; }
 
   RC     open(Trx *trx) override;
   RC     next() override;
@@ -45,7 +45,6 @@ private:
 
   void generate_physical_plan();
 
-private:
   std::string    physical_plan_;
   ValueListTuple tuple_;
 };

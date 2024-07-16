@@ -16,16 +16,15 @@ See the Mulan PSL v2 for more details. */
 
 #include <fcntl.h>
 #include <sys/stat.h>
-#include <vector>
 #include <filesystem>
 
 #include "common/lang/string.h"
+#include "common/lang/system_error.h"
 #include "common/log/log.h"
 #include "common/os/path.h"
 #include "common/global_context.h"
 #include "storage/common/meta_util.h"
 #include "storage/table/table.h"
-#include "storage/table/table_meta.h"
 #include "storage/trx/trx.h"
 #include "storage/clog/disk_log_handler.h"
 #include "storage/clog/integrated_log_replayer.h"
@@ -56,7 +55,7 @@ RC Db::init(const char *name, const char *dbpath, const char *trx_kit_name, cons
     return RC::INVALID_ARGUMENT;
   }
 
-  if (!filesystem::is_directory(dbpath)) {
+  if (!std::filesystem::is_directory(dbpath)) {
     LOG_ERROR("Failed to init DB, path is not a directory: %s", dbpath);
     return RC::INVALID_ARGUMENT;
   }
@@ -72,9 +71,9 @@ RC Db::init(const char *name, const char *dbpath, const char *trx_kit_name, cons
   buffer_pool_manager_ = make_unique<BufferPoolManager>();
   auto dblwr_buffer    = make_unique<DiskDoubleWriteBuffer>(*buffer_pool_manager_);
 
-  const char      *double_write_buffer_filename  = "dblwr.db";
-  filesystem::path double_write_buffer_file_path = filesystem::path(dbpath) / double_write_buffer_filename;
-  rc                                             = dblwr_buffer->open_file(double_write_buffer_file_path.c_str());
+  const char           *double_write_buffer_filename  = "dblwr.db";
+  std::filesystem::path double_write_buffer_file_path = std::filesystem::path(dbpath) / double_write_buffer_filename;
+  rc                                                  = dblwr_buffer->open_file(double_write_buffer_file_path.c_str());
   if (OB_FAIL(rc)) {
     LOG_ERROR("Failed to open double write buffer file. file=%s, rc=%s",
               double_write_buffer_file_path.c_str(), strrc(rc));
@@ -87,9 +86,9 @@ RC Db::init(const char *name, const char *dbpath, const char *trx_kit_name, cons
     return rc;
   }
 
-  filesystem::path clog_path       = filesystem::path(dbpath) / "clog";
-  LogHandler      *tmp_log_handler = nullptr;
-  rc                               = LogHandler::create(log_handler_name, tmp_log_handler);
+  std::filesystem::path clog_path       = std::filesystem::path(dbpath) / "clog";
+  LogHandler           *tmp_log_handler = nullptr;
+  rc                                    = LogHandler::create(log_handler_name, tmp_log_handler);
   if (OB_FAIL(rc)) {
     LOG_ERROR("Failed to create log handler: %s", log_handler_name);
     return rc;
@@ -140,14 +139,14 @@ RC Db::create_table(const char *table_name, span<const AttrInfoSqlNode> attribut
 {
   RC rc = RC::SUCCESS;
   // check table_name
-  if (opened_tables_.count(table_name) != 0) {
+  if (opened_tables_.contains(table_name)) {
     LOG_WARN("%s has been opened before.", table_name);
     return RC::SCHEMA_TABLE_EXIST;
   }
 
   // 文件路径可以移到Table模块
   string  table_file_path = table_meta_file(path_.c_str(), table_name);
-  Table  *table           = new Table();
+  auto   *table           = new Table();
   int32_t table_id        = next_table_id_++;
   rc = table->create(this, table_id, table_file_path.c_str(), table_name, path_.c_str(), attributes, storage_format);
   if (rc != RC::SUCCESS) {
@@ -163,7 +162,7 @@ RC Db::create_table(const char *table_name, span<const AttrInfoSqlNode> attribut
 
 Table *Db::find_table(const char *table_name) const
 {
-  unordered_map<string, Table *>::const_iterator iter = opened_tables_.find(table_name);
+  auto iter = opened_tables_.find(table_name);
   if (iter != opened_tables_.end()) {
     return iter->second;
   }
@@ -172,7 +171,7 @@ Table *Db::find_table(const char *table_name) const
 
 Table *Db::find_table(int32_t table_id) const
 {
-  for (auto pair : opened_tables_) {
+  for (const auto &pair : opened_tables_) {
     if (pair.second->table_id() == table_id) {
       return pair.second;
     }
@@ -192,18 +191,18 @@ RC Db::open_all_tables()
 
   RC rc = RC::SUCCESS;
   for (const string &filename : table_meta_files) {
-    Table *table = new Table();
-    rc           = table->open(this, filename.c_str(), path_.c_str());
+    auto *table = new Table();
+    rc          = table->open(this, filename.c_str(), path_.c_str());
     if (rc != RC::SUCCESS) {
       delete table;
       LOG_ERROR("Failed to open table. filename=%s", filename.c_str());
       return rc;
     }
 
-    if (opened_tables_.count(table->name()) != 0) {
-      delete table;
+    if (opened_tables_.contains(table->name())) {
       LOG_ERROR("Duplicate table with difference file name. table=%s, the other filename=%s",
           table->name(), filename.c_str());
+      delete table;
       return RC::INTERNAL;
     }
 
@@ -241,8 +240,8 @@ RC Db::sync()
     LOG_INFO("Successfully sync table db:%s, table:%s.", name_.c_str(), table->name());
   }
 
-  auto dblwr_buffer = static_cast<DiskDoubleWriteBuffer *>(buffer_pool_manager_->get_dblwr_buffer());
-  rc                = dblwr_buffer->flush_page();
+  auto *dblwr_buffer = static_cast<DiskDoubleWriteBuffer *>(buffer_pool_manager_->get_dblwr_buffer());
+  rc                 = dblwr_buffer->flush_page();
   LOG_INFO("double write buffer flush pages ret=%s", strrc(rc));
 
   /*
@@ -301,8 +300,8 @@ RC Db::recover()
 
 RC Db::init_meta()
 {
-  filesystem::path db_meta_file_path = db_meta_file(path_.c_str(), name_.c_str());
-  if (!filesystem::exists(db_meta_file_path)) {
+  std::filesystem::path db_meta_file_path = db_meta_file(path_.c_str(), name_.c_str());
+  if (!std::filesystem::exists(db_meta_file_path)) {
     check_point_lsn_ = 0;
     LOG_INFO("Db meta file not exist. db=%s, file=%s", name_.c_str(), db_meta_file_path.c_str());
     return RC::SUCCESS;
@@ -345,8 +344,8 @@ RC Db::flush_meta()
   // 先创建一个临时文件，将元数据写入临时文件
   // 然后再将临时文件修改为正式文件
 
-  filesystem::path meta_file_path      = db_meta_file(path_.c_str(), name_.c_str());  // 正式文件名
-  filesystem::path temp_meta_file_path = meta_file_path;                              // 临时文件名
+  std::filesystem::path meta_file_path      = db_meta_file(path_.c_str(), name_.c_str());  // 正式文件名
+  std::filesystem::path temp_meta_file_path = meta_file_path;                              // 临时文件名
   temp_meta_file_path += ".tmp";
 
   RC  rc = RC::SUCCESS;
@@ -369,7 +368,7 @@ RC Db::flush_meta()
     rc = RC::IOERR_WRITE;
   } else {
     error_code ec;
-    filesystem::rename(temp_meta_file_path, meta_file_path, ec);
+    std::filesystem::rename(temp_meta_file_path, meta_file_path, ec);
     if (ec) {
       LOG_ERROR("Failed to rename db meta file. db=%s, file=%s, errno=%s", 
                 name_.c_str(), temp_meta_file_path.c_str(), ec.message().c_str());
@@ -386,8 +385,8 @@ RC Db::flush_meta()
 
 RC Db::init_dblwr_buffer()
 {
-  auto dblwr_buffer = static_cast<DiskDoubleWriteBuffer *>(buffer_pool_manager_->get_dblwr_buffer());
-  RC   rc           = dblwr_buffer->recover();
+  auto *dblwr_buffer = static_cast<DiskDoubleWriteBuffer *>(buffer_pool_manager_->get_dblwr_buffer());
+  RC    rc           = dblwr_buffer->recover();
   if (OB_FAIL(rc)) {
     LOG_ERROR("fail to recover in dblwr buffer");
     return rc;

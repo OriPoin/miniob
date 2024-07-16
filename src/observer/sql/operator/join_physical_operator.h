@@ -15,7 +15,6 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/operator/physical_operator.h"
-#include "sql/parser/parse.h"
 
 /**
  * @brief 最简单的两表（称为左表、右表）join算子
@@ -26,9 +25,9 @@ class NestedLoopJoinPhysicalOperator : public PhysicalOperator
 {
 public:
   NestedLoopJoinPhysicalOperator();
-  virtual ~NestedLoopJoinPhysicalOperator() = default;
+  ~NestedLoopJoinPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::NESTED_LOOP_JOIN; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::NESTED_LOOP_JOIN; }
 
   RC     open(Trx *trx) override;
   RC     next() override;
@@ -39,7 +38,6 @@ private:
   RC left_next();   //! 左表遍历下一条数据
   RC right_next();  //! 右表遍历下一条数据，如果上一轮结束了就重新开始新的一轮
 
-private:
   Trx *trx_ = nullptr;
 
   //! 左表右表的真实对象是在PhysicalOperator::children_中，这里是为了写的时候更简单

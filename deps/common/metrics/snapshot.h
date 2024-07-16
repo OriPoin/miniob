@@ -22,7 +22,7 @@ namespace common {
 class Snapshot
 {
 public:
-  virtual ~Snapshot(){};
+  virtual ~Snapshot()             = default;
   virtual std::string to_string() = 0;
 };
 
@@ -30,16 +30,13 @@ template <class T>
 class SnapshotBasic : public Snapshot
 {
 public:
-  SnapshotBasic()
-      : value(){
+  SnapshotBasic() : value(){};
 
-        };
-
-  virtual ~SnapshotBasic() {}
+  ~SnapshotBasic() override = default;
 
   void setValue(T &input) { value = input; }
 
-  std::string to_string()
+  std::string to_string() override
   {
     std::string ret;
     val_to_str(value, ret);
@@ -53,9 +50,9 @@ private:
 class SimplerTimerSnapshot : public Snapshot
 {
 public:
-  SimplerTimerSnapshot() {}
+  SimplerTimerSnapshot() = default;
 
-  virtual ~SimplerTimerSnapshot() {}
+  ~SimplerTimerSnapshot() override = default;
 
   void setValue(double mean, double tps)
   {
@@ -63,7 +60,7 @@ public:
     this->tps  = tps;
   }
 
-  std::string to_string()
+  std::string to_string() override
   {
     std::stringstream oss;
     oss << "mean:" << mean << ",tps:" << tps;

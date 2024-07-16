@@ -97,7 +97,6 @@ public:
   using pointer           = value_type *;
   using reference         = value_type &;
 
-public:
   BinaryIterator() = default;
   BinaryIterator(size_t item_num, T *data) : item_num_(item_num), data_(data) {}
 

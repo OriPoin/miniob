@@ -32,7 +32,6 @@ class LruCache
     ListNode *prev_ = nullptr;
     ListNode *next_ = nullptr;
 
-  public:
     ListNode(const Key &key, const Value &value) : key_(key), value_(value) {}
   };
 
@@ -72,7 +71,7 @@ class LruCache
   };
 
 public:
-  LruCache(size_t reserve = 0)
+  explicit LruCache(size_t reserve = 0)
   {
     if (reserve > 0) {
       searcher_.reserve(reserve);
@@ -92,7 +91,7 @@ public:
     lru_tail_  = nullptr;
   }
 
-  size_t count() const { return searcher_.size(); }
+  [[nodiscard]] size_t count() const { return searcher_.size(); }
 
   bool get(const Key &key, Value &value)
   {
@@ -116,7 +115,7 @@ public:
       return;
     }
 
-    ListNode *ln = new ListNode(key, value);
+    auto *ln = new ListNode(key, value);
     lru_push(ln);
   }
 
@@ -130,7 +129,7 @@ public:
 
   void pop(Value *&value)
   {
-    // TODO
+    // TODO(unknown):
     value = nullptr;
   }
 
@@ -216,7 +215,6 @@ private:
     delete node;
   }
 
-private:
   using SearchType = unordered_set<ListNode *, PListNodeHasher, PListNodePredicator>;
   SearchType searcher_;
   ListNode  *lru_front_ = nullptr;

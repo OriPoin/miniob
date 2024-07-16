@@ -14,19 +14,19 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stdio.h>
+#include <sys/types.h>
 namespace common {
 
-typedef unsigned char     *POINTER;
-typedef unsigned short int UINT2;
-typedef unsigned int       UINT4;
+using POINTER = unsigned char *;
+using UINT2   = u_int16_t;
+using UINT4   = unsigned int;
 
-typedef struct
+using MD5_CTX = struct
 {
   UINT4         state[4];   /* state (ABCD) */
   UINT4         count[2];   /* number of bits, modulo 2^64 (lsb first) */
   unsigned char buffer[64]; /* input buffer */
-} MD5_CTX;
+};
 
 #ifdef __cplusplus
 extern "C" {

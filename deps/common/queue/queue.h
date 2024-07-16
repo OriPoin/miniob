@@ -32,7 +32,6 @@ class Queue
 public:
   using value_type = T;
 
-public:
   Queue()          = default;
   virtual ~Queue() = default;
 
@@ -57,7 +56,7 @@ public:
    *
    * @return int 对列中任务的数量
    */
-  virtual int size() const = 0;
+  [[nodiscard]] virtual int size() const = 0;
 };
 
 }  // namespace common

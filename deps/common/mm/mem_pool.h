@@ -14,8 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <sstream>
-
 #include "common/lang/mutex.h"
 #include "common/lang/string.h"
 #include "common/lang/set.h"
@@ -24,19 +22,20 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/sstream.h"
 #include "common/log/log.h"
 #include "common/os/os.h"
+#include <cstddef>
 
 namespace common {
 
 #define DEFAULT_ITEM_NUM_PER_POOL 128
 #define DEFAULT_POOL_NUM 1
 
-typedef bool (*match)(void *item, void *input_arg);
+using match = bool (*)(void *, void *);
 
 template <class T>
 class MemPool
 {
 public:
-  MemPool(const char *tag) : name(tag)
+  explicit MemPool(const char *tag) : name(tag)
   {
     this->size = 0;
 
@@ -55,8 +54,7 @@ public:
    * @param item_num_per_pool, how many items per pool.
    * @return
    */
-  virtual int init(
-      bool dynamic = true, int pool_num = DEFAULT_POOL_NUM, int item_num_per_pool = DEFAULT_ITEM_NUM_PER_POOL) = 0;
+  virtual int init(bool dynamic, int pool_num, int item_num_per_pool) = 0;
 
   /**
    * Do cleanup job for memory pool
@@ -86,9 +84,9 @@ public:
    */
   virtual string to_string() = 0;
 
-  const string get_name() const { return name; }
-  bool         is_dynamic() const { return dynamic; }
-  int          get_size() const { return size; }
+  [[nodiscard]] string get_name() const { return name; }
+  [[nodiscard]] bool   is_dynamic() const { return dynamic; }
+  [[nodiscard]] int    get_size() const { return size; }
 
 protected:
   pthread_mutex_t mutex;
@@ -106,7 +104,7 @@ template <class T>
 class MemPoolSimple : public MemPool<T>
 {
 public:
-  MemPoolSimple(const char *tag) : MemPool<T>(tag) {}
+  explicit MemPoolSimple(const char *tag) : MemPool<T>(tag) {}
 
   virtual ~MemPoolSimple() { cleanup(); }
 
@@ -138,7 +136,7 @@ public:
    * Free one item, the resouce will return to memory Pool
    * @param item
    */
-  void free(T *item);
+  void free(T *buf);
 
   /**
    * Print the MemPool status
@@ -146,7 +144,7 @@ public:
    */
   string to_string();
 
-  int get_item_num_per_pool() const { return item_num_per_pool; }
+  [[nodiscard]] int get_item_num_per_pool() const { return item_num_per_pool; }
 
   int get_used_num()
   {
@@ -289,7 +287,7 @@ void MemPoolSimple<T>::free(T *buf)
   frees.push_back(buf);
 
   MUTEX_UNLOCK(&this->mutex);
-  return;  // TODO for test
+  // TODO(unknown): for test
 }
 
 template <class T>
@@ -311,8 +309,7 @@ class MemPoolItem
 public:
   using item_unique_ptr = unique_ptr<void, function<void(void *const)>>;
 
-public:
-  MemPoolItem(const char *tag) : name(tag)
+  explicit MemPoolItem(const char *tag) : name(tag)
   {
     this->size = 0;
 
@@ -335,7 +332,7 @@ public:
    * @param item_num_per_pool, how many items per pool.
    * @return
    */
-  int init(int item_size, bool dynamic = true, int pool_num = DEFAULT_POOL_NUM,
+  int init(size_t item_size, bool dynamic = true, int pool_num = DEFAULT_POOL_NUM,
       int item_num_per_pool = DEFAULT_ITEM_NUM_PER_POOL);
 
   /**
@@ -359,7 +356,7 @@ public:
    * Free one item, the resouce will return to memory Pool
    * @param item
    */
-  void free(void *item);
+  void free(void *buf);
 
   /**
    * Check whether this item has been used before.
@@ -388,11 +385,11 @@ public:
     return ss.str();
   }
 
-  const string get_name() const { return name; }
-  bool         is_dynamic() const { return dynamic; }
-  int          get_size() const { return size; }
-  int          get_item_size() const { return item_size; }
-  int          get_item_num_per_pool() const { return item_num_per_pool; }
+  [[nodiscard]] string get_name() const { return name; }
+  [[nodiscard]] bool   is_dynamic() const { return dynamic; }
+  [[nodiscard]] int    get_size() const { return size; }
+  [[nodiscard]] int    get_item_size() const { return item_size; }
+  [[nodiscard]] int    get_item_num_per_pool() const { return item_num_per_pool; }
 
   int get_used_num()
   {

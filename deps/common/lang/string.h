@@ -16,16 +16,14 @@ See the Mulan PSL v2 for more details. */
 
 // Basic includes
 #include <cxxabi.h>
-#include <signal.h>
-#include <stdlib.h>
-
+#include <csignal>
 #include <cstdlib>
+
 #include <string>
 #include <typeinfo>
 
-#include "common/defs.h"
+#include "common/lang/ios.h"
 #include "common/lang/vector.h"
-#include "common/lang/iostream.h"
 #include "common/lang/sstream.h"
 #include "common/lang/set.h"
 
@@ -67,11 +65,11 @@ string &str_to_lower(string &s);
  * @param[in]      delims     elimiter characters
  * @param[in,out] results     ector containing the split up string
  */
-void split_string(const string &str, string delim, set<string> &results);
-void split_string(const string &str, string delim, vector<string> &results);
+void split_string(const string &str, const string &delim, set<string> &results);
+void split_string(const string &str, const string &delim, vector<string> &results);
 void split_string(char *str, char dim, vector<char *> &results, bool keep_null = false);
 
-void merge_string(string &str, string delim, vector<string> &result, size_t result_len = 0);
+void merge_string(string &str, const string &delim, vector<string> &source, size_t result_len = 0);
 /**
  * replace old with new in the string
  */
@@ -80,7 +78,7 @@ void replace(string &str, const string &old, const string &new_str);
 /**
  * binary to hexadecimal
  */
-char *bin_to_hex(const char *s, const int len, char *hex_buff);
+char *bin_to_hex(const char *s, int len, char *hex_buff);
 /**
  * hexadecimal to binary
  */
@@ -164,7 +162,7 @@ template <class T>
 string get_type_name(const T &val)
 {
   int   status = 0;
-  char *stmp   = abi::__cxa_demangle(typeid(val).name(), 0, 0, &status);
+  char *stmp   = abi::__cxa_demangle(typeid(val).name(), nullptr, nullptr, &status);
   if (!stmp)
     return "";
 

@@ -34,7 +34,7 @@ RC PredicatePushdownRewriter::rewrite(std::unique_ptr<LogicalOperator> &oper, bo
     return rc;
   }
 
-  auto table_get_oper = static_cast<TableGetLogicalOperator *>(child_oper.get());
+  auto *table_get_oper = static_cast<TableGetLogicalOperator *>(child_oper.get());
 
   std::vector<std::unique_ptr<Expression>> &predicate_oper_exprs = oper->expressions();
   if (predicate_oper_exprs.size() != 1) {
@@ -54,7 +54,7 @@ RC PredicatePushdownRewriter::rewrite(std::unique_ptr<LogicalOperator> &oper, bo
     // 这个predicate operator其实就可以不要了。但是这里没办法删除，弄一个空的表达式吧
     LOG_TRACE("all expressions of predicate operator were pushdown to table get operator, then make a fake one");
 
-    Value value((bool)true);
+    Value value(true);
     predicate_expr = std::unique_ptr<Expression>(new ValueExpr(value));
   }
 
@@ -73,7 +73,7 @@ bool PredicatePushdownRewriter::is_empty_predicate(std::unique_ptr<Expression> &
   }
 
   if (expr->type() == ExprType::CONJUNCTION) {
-    ConjunctionExpr *conjunction_expr = static_cast<ConjunctionExpr *>(expr.get());
+    auto *conjunction_expr = static_cast<ConjunctionExpr *>(expr.get());
     if (conjunction_expr->children().empty()) {
       bool_ret = true;
     }
@@ -93,7 +93,7 @@ RC PredicatePushdownRewriter::get_exprs_can_pushdown(
 {
   RC rc = RC::SUCCESS;
   if (expr->type() == ExprType::CONJUNCTION) {
-    ConjunctionExpr *conjunction_expr = static_cast<ConjunctionExpr *>(expr.get());
+    auto *conjunction_expr = static_cast<ConjunctionExpr *>(expr.get());
     // 或 操作的比较，太复杂，现在不考虑
     if (conjunction_expr->conjunction_type() == ConjunctionExpr::Type::OR) {
       LOG_WARN("unsupported or operation");
@@ -119,7 +119,7 @@ RC PredicatePushdownRewriter::get_exprs_can_pushdown(
     }
   } else if (expr->type() == ExprType::COMPARISON) {
     // 如果是比较操作，并且比较的左边或右边是表某个列值，那么就下推下去
-    auto   comparison_expr = static_cast<ComparisonExpr *>(expr.get());
+    auto *comparison_expr = static_cast<ComparisonExpr *>(expr.get());
 
     std::unique_ptr<Expression> &left_expr  = comparison_expr->left();
     std::unique_ptr<Expression> &right_expr = comparison_expr->right();

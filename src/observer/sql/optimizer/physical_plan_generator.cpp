@@ -119,8 +119,6 @@ RC PhysicalPlanGenerator::create_vec(LogicalOperator &logical_operator, unique_p
   return rc;
 }
 
-
-
 RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, unique_ptr<PhysicalOperator> &oper)
 {
   vector<unique_ptr<Expression>> &predicates = table_get_oper.predicates();
@@ -131,7 +129,7 @@ RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, u
   ValueExpr *value_expr = nullptr;
   for (auto &expr : predicates) {
     if (expr->type() == ExprType::COMPARISON) {
-      auto comparison_expr = static_cast<ComparisonExpr *>(expr.get());
+      auto *comparison_expr = static_cast<ComparisonExpr *>(expr.get());
       // 简单处理，就找等值查询
       if (comparison_expr->comp() != EQUAL_TO) {
         continue;
@@ -170,8 +168,8 @@ RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, u
   if (index != nullptr) {
     ASSERT(value_expr != nullptr, "got an index but value expr is null ?");
 
-    const Value               &value           = value_expr->get_value();
-    IndexScanPhysicalOperator *index_scan_oper = new IndexScanPhysicalOperator(table,
+    const Value &value           = value_expr->get_value();
+    auto        *index_scan_oper = new IndexScanPhysicalOperator(table,
         index,
         table_get_oper.read_write_mode(),
         &value,
@@ -183,7 +181,7 @@ RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, u
     oper = unique_ptr<PhysicalOperator>(index_scan_oper);
     LOG_TRACE("use index scan");
   } else {
-    auto table_scan_oper = new TableScanPhysicalOperator(table, table_get_oper.read_write_mode());
+    auto *table_scan_oper = new TableScanPhysicalOperator(table, table_get_oper.read_write_mode());
     table_scan_oper->set_predicates(std::move(predicates));
     oper = unique_ptr<PhysicalOperator>(table_scan_oper);
     LOG_TRACE("use table scan");
@@ -245,9 +243,9 @@ RC PhysicalPlanGenerator::create_plan(ProjectLogicalOperator &project_oper, uniq
 
 RC PhysicalPlanGenerator::create_plan(InsertLogicalOperator &insert_oper, unique_ptr<PhysicalOperator> &oper)
 {
-  Table                  *table           = insert_oper.table();
-  vector<Value>          &values          = insert_oper.values();
-  InsertPhysicalOperator *insert_phy_oper = new InsertPhysicalOperator(table, std::move(values));
+  Table         *table           = insert_oper.table();
+  vector<Value> &values          = insert_oper.values();
+  auto          *insert_phy_oper = new InsertPhysicalOperator(table, std::move(values));
   oper.reset(insert_phy_oper);
   return RC::SUCCESS;
 }
@@ -329,7 +327,7 @@ RC PhysicalPlanGenerator::create_plan(CalcLogicalOperator &logical_oper, std::un
 {
   RC rc = RC::SUCCESS;
 
-  CalcPhysicalOperator *calc_oper = new CalcPhysicalOperator(std::move(logical_oper.expressions()));
+  auto *calc_oper = new CalcPhysicalOperator(std::move(logical_oper.expressions()));
   oper.reset(calc_oper);
   return rc;
 }
@@ -338,13 +336,13 @@ RC PhysicalPlanGenerator::create_plan(GroupByLogicalOperator &logical_oper, std:
 {
   RC rc = RC::SUCCESS;
 
-  vector<unique_ptr<Expression>> &group_by_expressions = logical_oper.group_by_expressions();
+  vector<unique_ptr<Expression>>     &group_by_expressions = logical_oper.group_by_expressions();
   unique_ptr<GroupByPhysicalOperator> group_by_oper;
   if (group_by_expressions.empty()) {
     group_by_oper = make_unique<ScalarGroupByPhysicalOperator>(std::move(logical_oper.aggregate_expressions()));
   } else {
-    group_by_oper = make_unique<HashGroupByPhysicalOperator>(std::move(logical_oper.group_by_expressions()),
-        std::move(logical_oper.aggregate_expressions()));
+    group_by_oper = make_unique<HashGroupByPhysicalOperator>(
+        std::move(logical_oper.group_by_expressions()), std::move(logical_oper.aggregate_expressions()));
   }
 
   ASSERT(logical_oper.children().size() == 1, "group by operator should have 1 child");
@@ -366,8 +364,8 @@ RC PhysicalPlanGenerator::create_plan(GroupByLogicalOperator &logical_oper, std:
 RC PhysicalPlanGenerator::create_vec_plan(TableGetLogicalOperator &table_get_oper, unique_ptr<PhysicalOperator> &oper)
 {
   vector<unique_ptr<Expression>> &predicates = table_get_oper.predicates();
-  Table *table = table_get_oper.table();
-  TableScanVecPhysicalOperator *table_scan_oper = new TableScanVecPhysicalOperator(table, table_get_oper.read_write_mode());
+  Table                          *table      = table_get_oper.table();
+  auto *table_scan_oper = new TableScanVecPhysicalOperator(table, table_get_oper.read_write_mode());
   table_scan_oper->set_predicates(std::move(predicates));
   oper = unique_ptr<PhysicalOperator>(table_scan_oper);
   LOG_TRACE("use vectorized table scan");
@@ -377,14 +375,13 @@ RC PhysicalPlanGenerator::create_vec_plan(TableGetLogicalOperator &table_get_ope
 
 RC PhysicalPlanGenerator::create_vec_plan(GroupByLogicalOperator &logical_oper, unique_ptr<PhysicalOperator> &oper)
 {
-  RC rc = RC::SUCCESS;
+  RC                           rc            = RC::SUCCESS;
   unique_ptr<PhysicalOperator> physical_oper = nullptr;
   if (logical_oper.group_by_expressions().empty()) {
     physical_oper = make_unique<AggregateVecPhysicalOperator>(std::move(logical_oper.aggregate_expressions()));
   } else {
     physical_oper = make_unique<GroupByVecPhysicalOperator>(
-      std::move(logical_oper.group_by_expressions()), std::move(logical_oper.aggregate_expressions()));
-
+        std::move(logical_oper.group_by_expressions()), std::move(logical_oper.aggregate_expressions()));
   }
 
   ASSERT(logical_oper.children().size() == 1, "group by operator should have 1 child");
@@ -438,7 +435,6 @@ RC PhysicalPlanGenerator::create_vec_plan(ProjectLogicalOperator &project_oper, 
   LOG_TRACE("create a project physical operator");
   return rc;
 }
-
 
 RC PhysicalPlanGenerator::create_vec_plan(ExplainLogicalOperator &explain_oper, unique_ptr<PhysicalOperator> &oper)
 {

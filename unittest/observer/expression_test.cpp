@@ -25,26 +25,26 @@ TEST(ArithmeticExpr, test_value_type)
 {
   Value int_value1(1);
   Value int_value2(2);
-  Value float_value1((float)1.1);
-  Value float_value2((float)2.2);
+  Value float_value1(static_cast<float>(1.1));
+  Value float_value2(static_cast<float>(2.2));
 
   unique_ptr<Expression> left_expr(new ValueExpr(int_value1));
   unique_ptr<Expression> right_expr(new ValueExpr(int_value2));
   ArithmeticExpr         expr_int(ArithmeticExpr::Type::ADD, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(AttrType::INTS, expr_int.value_type());
 
-  left_expr.reset(new ValueExpr(float_value1));
-  right_expr.reset(new ValueExpr(float_value2));
+  left_expr  = std::make_unique<ValueExpr>(float_value1);
+  right_expr = std::make_unique<ValueExpr>(float_value2);
   ArithmeticExpr expr_float(ArithmeticExpr::Type::ADD, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(AttrType::FLOATS, expr_float.value_type());
 
-  left_expr.reset(new ValueExpr(int_value1));
-  right_expr.reset(new ValueExpr(float_value2));
+  left_expr  = std::make_unique<ValueExpr>(int_value1);
+  right_expr = std::make_unique<ValueExpr>(float_value2);
   ArithmeticExpr expr_int_float(ArithmeticExpr::Type::ADD, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(AttrType::FLOATS, expr_int_float.value_type());
 
-  left_expr.reset(new ValueExpr(int_value1));
-  right_expr.reset(new ValueExpr(int_value2));
+  left_expr  = std::make_unique<ValueExpr>(int_value1);
+  right_expr = std::make_unique<ValueExpr>(int_value2);
   ArithmeticExpr expr_int_int(ArithmeticExpr::Type::DIV, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(AttrType::FLOATS, expr_int_int.value_type());
 }
@@ -53,8 +53,8 @@ TEST(ArithmeticExpr, test_try_get_value)
 {
   Value int_value1(1);
   Value int_value2(2);
-  Value float_value1((float)1.1);
-  Value float_value2((float)2.2);
+  Value float_value1(static_cast<float>(1.1));
+  Value float_value2(static_cast<float>(2.2));
 
   Value int_result;
   Value float_result;
@@ -68,71 +68,71 @@ TEST(ArithmeticExpr, test_try_get_value)
 
   int_expr.~ArithmeticExpr();
 
-  left_expr.reset(new ValueExpr(int_value1));
-  right_expr.reset(new ValueExpr(int_value2));
+  left_expr  = std::make_unique<ValueExpr>(int_value1);
+  right_expr = std::make_unique<ValueExpr>(int_value2);
   new (&int_expr)(ArithmeticExpr)(ArithmeticExpr::Type::SUB, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(int_expr.try_get_value(int_result), RC::SUCCESS);
   ASSERT_EQ(int_result.get_int(), -1);
 
-  left_expr.reset(new ValueExpr(int_value1));
-  right_expr.reset(new ValueExpr(int_value2));
+  left_expr  = std::make_unique<ValueExpr>(int_value1);
+  right_expr = std::make_unique<ValueExpr>(int_value2);
   int_expr.~ArithmeticExpr();
   new (&int_expr)(ArithmeticExpr)(ArithmeticExpr::Type::MUL, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(int_expr.try_get_value(int_result), RC::SUCCESS);
   ASSERT_EQ(int_result.get_int(), 2);
 
-  left_expr.reset(new ValueExpr(int_value1));
-  right_expr.reset(new ValueExpr(int_value2));
+  left_expr  = std::make_unique<ValueExpr>(int_value1);
+  right_expr = std::make_unique<ValueExpr>(int_value2);
   int_expr.~ArithmeticExpr();
   new (&int_expr)(ArithmeticExpr)(ArithmeticExpr::Type::DIV, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(int_expr.try_get_value(float_result), RC::SUCCESS);
   EXPECT_FLOAT_EQ(float_result.get_float(), 0.5);
 
-  left_expr.reset(new ValueExpr(float_value1));
-  right_expr.reset(new ValueExpr(float_value2));
+  left_expr  = std::make_unique<ValueExpr>(float_value1);
+  right_expr = std::make_unique<ValueExpr>(float_value2);
   ArithmeticExpr float_expr(ArithmeticExpr::Type::ADD, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(float_expr.try_get_value(float_result), RC::SUCCESS);
   EXPECT_FLOAT_EQ(float_result.get_float(), 3.3);
 
-  left_expr.reset(new ValueExpr(float_value1));
-  right_expr.reset(new ValueExpr(float_value2));
+  left_expr  = std::make_unique<ValueExpr>(float_value1);
+  right_expr = std::make_unique<ValueExpr>(float_value2);
   float_expr.~ArithmeticExpr();
   new (&float_expr)(ArithmeticExpr)(ArithmeticExpr::Type::SUB, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(float_expr.try_get_value(float_result), RC::SUCCESS);
   EXPECT_FLOAT_EQ(float_result.get_float(), -1.1);
 
-  left_expr.reset(new ValueExpr(float_value1));
-  right_expr.reset(new ValueExpr(float_value2));
+  left_expr  = std::make_unique<ValueExpr>(float_value1);
+  right_expr = std::make_unique<ValueExpr>(float_value2);
   float_expr.~ArithmeticExpr();
   new (&float_expr)(ArithmeticExpr)(ArithmeticExpr::Type::MUL, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(float_expr.try_get_value(float_result), RC::SUCCESS);
   EXPECT_FLOAT_EQ(float_result.get_float(), 1.1 * 2.2);
 
-  left_expr.reset(new ValueExpr(float_value1));
-  right_expr.reset(new ValueExpr(float_value2));
+  left_expr  = std::make_unique<ValueExpr>(float_value1);
+  right_expr = std::make_unique<ValueExpr>(float_value2);
   float_expr.~ArithmeticExpr();
   new (&float_expr)(ArithmeticExpr)(ArithmeticExpr::Type::DIV, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(float_expr.try_get_value(float_result), RC::SUCCESS);
   EXPECT_FLOAT_EQ(float_result.get_float(), 1.1 / 2.2);
 
   Value zero_int_value(0);
-  Value zero_float_value((float)0);
-  left_expr.reset(new ValueExpr(int_value1));
-  right_expr.reset(new ValueExpr(zero_int_value));
+  Value zero_float_value(static_cast<float>(0));
+  left_expr  = std::make_unique<ValueExpr>(int_value1);
+  right_expr = std::make_unique<ValueExpr>(zero_int_value);
   ArithmeticExpr zero_int_expr(ArithmeticExpr::Type::DIV, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(zero_int_expr.try_get_value(float_result), RC::SUCCESS);
 
-  left_expr.reset(new ValueExpr(float_value1));
-  right_expr.reset(new ValueExpr(zero_float_value));
+  left_expr  = std::make_unique<ValueExpr>(float_value1);
+  right_expr = std::make_unique<ValueExpr>(zero_float_value);
   ArithmeticExpr zero_float_expr(ArithmeticExpr::Type::DIV, std::move(left_expr), std::move(right_expr));
   ASSERT_EQ(zero_float_expr.try_get_value(float_result), RC::SUCCESS);
 
-  left_expr.reset(new ValueExpr(int_value1));
+  left_expr = std::make_unique<ValueExpr>(int_value1);
   ArithmeticExpr negative_expr(ArithmeticExpr::Type::NEGATIVE, std::move(left_expr), nullptr);
   ASSERT_EQ(negative_expr.try_get_value(int_result), RC::SUCCESS);
   ASSERT_EQ(int_result.get_int(), -1);
 
-  left_expr.reset(new ValueExpr(float_value1));
+  left_expr = std::make_unique<ValueExpr>(float_value1);
   ArithmeticExpr negative_float_expr(ArithmeticExpr::Type::NEGATIVE, std::move(left_expr), nullptr);
   ASSERT_EQ(negative_float_expr.try_get_value(float_result), RC::SUCCESS);
   EXPECT_FLOAT_EQ(float_result.get_float(), -1.1);
@@ -144,8 +144,8 @@ TEST(ArithmeticExpr, get_column)
   {
     Value int_value1(1);
     Value int_value2(2);
-    Value float_value1((float)1.1);
-    Value float_value2((float)2.2);
+    Value float_value1(static_cast<float>(1.1));
+    Value float_value2(static_cast<float>(2.2));
     Chunk chunk;
 
     Value int_result;
@@ -159,8 +159,8 @@ TEST(ArithmeticExpr, get_column)
     ASSERT_EQ(column.count(), 1);
     ASSERT_EQ(column.get_value(0).get_int(), 3);
 
-    left_expr.reset(new ValueExpr(int_value1));
-    right_expr.reset(new ValueExpr(int_value2));
+    left_expr  = std::make_unique<ValueExpr>(int_value1);
+    right_expr = std::make_unique<ValueExpr>(int_value2);
     int_expr.~ArithmeticExpr();
     column.reset_data();
     new (&int_expr)(ArithmeticExpr)(ArithmeticExpr::Type::ADD, std::move(left_expr), std::move(right_expr));
@@ -168,8 +168,8 @@ TEST(ArithmeticExpr, get_column)
     ASSERT_EQ(column.count(), 1);
     ASSERT_EQ(column.get_value(0).get_int(), 3);
 
-    left_expr.reset(new ValueExpr(float_value1));
-    right_expr.reset(new ValueExpr(float_value2));
+    left_expr  = std::make_unique<ValueExpr>(float_value1);
+    right_expr = std::make_unique<ValueExpr>(float_value2);
     ArithmeticExpr float_expr(ArithmeticExpr::Type::ADD, std::move(left_expr), std::move(right_expr));
     ASSERT_EQ(float_expr.get_column(chunk, column), RC::SUCCESS);
     ASSERT_EQ(column.count(), 1);
@@ -181,11 +181,11 @@ TEST(ArithmeticExpr, get_column)
     int                     count       = 8;
     const int               int_len     = sizeof(int);
     std::unique_ptr<Column> column_left = std::make_unique<Column>(AttrType::FLOATS, int_len, count);
-    Value                   float_value(2.0f);
+    Value                   float_value(2.0F);
     unique_ptr<ValueExpr>   right_expr(new ValueExpr(float_value));
     for (int i = 0; i < count; ++i) {
       float left_value = i;
-      column_left->append_one((char *)&left_value);
+      column_left->append_one(reinterpret_cast<char *>(&left_value));
     }
     Chunk chunk;
     chunk.add_column(std::move(column_left), 0);
@@ -196,7 +196,7 @@ TEST(ArithmeticExpr, get_column)
     ArithmeticExpr expr(ArithmeticExpr::Type::DIV, std::move(left_expr), std::move(right_expr));
     ASSERT_EQ(expr.get_column(chunk, column_result), RC::SUCCESS);
     for (int i = 0; i < count; ++i) {
-      float expect_value = static_cast<float>(i) / 2.0f;
+      float expect_value = static_cast<float>(i) / 2.0F;
       ASSERT_EQ(column_result.get_value(i).get_float(), expect_value);
     }
   }
@@ -210,8 +210,8 @@ TEST(ArithmeticExpr, get_column)
     for (int i = 0; i < count; ++i) {
       int left_value  = i;
       int right_value = i;
-      column_left->append_one((char *)&left_value);
-      column_right->append_one((char *)&right_value);
+      column_left->append_one(reinterpret_cast<char *>(&left_value));
+      column_right->append_one(reinterpret_cast<char *>(&right_value));
     }
     Chunk chunk;
     chunk.add_column(std::move(column_left), 0);
@@ -281,12 +281,12 @@ TEST(ComparisonExpr, comparison_expr_test)
     Value                   int_value(1);
     FieldMeta               field_meta("col1", AttrType::INTS, 0, int_len, true, 0);
     Field                   field(nullptr, &field_meta);
-    unique_ptr<Expression>  right_expr  = std::make_unique<FieldExpr>(field);
-    int                     count       = 1024;
+    unique_ptr<Expression>  right_expr   = std::make_unique<FieldExpr>(field);
+    int                     count        = 1024;
     std::unique_ptr<Column> column_right = std::make_unique<Column>(AttrType::INTS, int_len, count);
     for (int i = 0; i < count; ++i) {
       int right_value = i;
-      column_right->append_one((char *)&right_value);
+      column_right->append_one(reinterpret_cast<char *>(&right_value));
     }
     Chunk                chunk;
     std::vector<uint8_t> select(count, 1);
@@ -312,7 +312,7 @@ TEST(AggregateExpr, aggregate_expr_test)
   Value                  int_value(1);
   unique_ptr<Expression> value_expr(new ValueExpr(int_value));
   AggregateExpr          aggregate_expr(AggregateExpr::Type::SUM, std::move(value_expr));
-  aggregate_expr.equal(aggregate_expr);
+  // aggregate_expr.equal(aggregate_expr);
   auto aggregator = aggregate_expr.create_aggregator();
   for (int i = 0; i < 100; i++) {
     aggregator->accumulate(Value(i));

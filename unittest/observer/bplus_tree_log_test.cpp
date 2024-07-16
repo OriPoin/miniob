@@ -14,7 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include <filesystem>
 #include <algorithm>
-#include <random>
 
 #include "gtest/gtest.h"
 #include "storage/index/bplus_tree_log.h"
@@ -165,6 +164,7 @@ TEST(BplusTreeLog, concurrency)
   filesystem::create_directories(child_directory_src);
 
   vector<filesystem::path> bp_filenames;
+  bp_filenames.reserve(10);
   for (int i = 0; i < 10; i++) {
     bp_filenames.push_back(child_directory_src / ("bplus_tree" + to_string(i) + ".bp"));
   }
@@ -256,6 +256,7 @@ TEST(BplusTreeLog, concurrency)
   auto                     log_handler2 = make_unique<DiskLogHandler>();
   vector<DiskBufferPool *> buffer_pools2;
   vector<filesystem::path> bp_filenames2;
+  bp_filenames2.reserve(10);
   for (int i = 0; i < 10; i++) {
     bp_filenames2.push_back(child_directory_dst / ("bplus_tree" + to_string(i) + ".bp"));
   }

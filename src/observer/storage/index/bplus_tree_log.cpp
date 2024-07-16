@@ -14,9 +14,10 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/log/log.h"
 #include "common/lang/defer.h"
-#include "common/lang/algorithm.h"
 #include "common/lang/sstream.h"
 #include "storage/index/bplus_tree_log.h"
+
+#include <ranges>
 #include "storage/index/bplus_tree.h"
 #include "storage/clog/log_handler.h"
 #include "storage/clog/log_entry.h"
@@ -134,8 +135,7 @@ RC BplusTreeLogger::rollback(BplusTreeMiniTransaction &mtr, BplusTreeHandler &tr
 {
   need_log_ = false;
 
-  for (auto iter = entries_.rbegin(), itend = entries_.rend(); iter != itend; ++iter) {
-    auto &entry = *iter;
+  for (auto &entry : std::ranges::reverse_view(entries_)) {
     entry->rollback(mtr, tree_handler);
   }
 
@@ -172,7 +172,7 @@ RC BplusTreeLogger::redo(BufferPoolManager &bpm, const LogEntry &entry)
   }
 
   BplusTreeMiniTransaction mtr(tree_handler);
-  rc = mtr.logger().__redo(entry.lsn(), mtr, tree_handler, buffer);
+  rc = mtr.logger()._redo(entry.lsn(), mtr, tree_handler, buffer);
   if (OB_FAIL(rc)) {
     LOG_WARN("failed to redo log entry. rc=%s", strrc(rc));
     return rc;
@@ -182,13 +182,14 @@ RC BplusTreeLogger::redo(BufferPoolManager &bpm, const LogEntry &entry)
   return rc;
 }
 
-RC BplusTreeLogger::__redo(LSN lsn, BplusTreeMiniTransaction &mtr, BplusTreeHandler &tree_handler, Deserializer &redo_buffer)
+RC BplusTreeLogger::_redo(
+    LSN lsn, BplusTreeMiniTransaction &mtr, BplusTreeHandler &tree_handler, Deserializer &redo_buffer)
 {
   need_log_ = false;
 
   DEFER(need_log_ = true);
 
-  RC rc = RC::SUCCESS;
+  RC              rc = RC::SUCCESS;
   vector<Frame *> frames;
   while (redo_buffer.remain() > 0) {
     unique_ptr<LogEntryHandler> entry;
@@ -202,11 +203,11 @@ RC BplusTreeLogger::__redo(LSN lsn, BplusTreeMiniTransaction &mtr, BplusTreeHand
     if (frame != nullptr) {
       if (frame->lsn() >= lsn) {
         LOG_TRACE("no need to redo. frame=%p:%s, redo lsn=%ld", frame, frame->to_string().c_str(), lsn);
-	frame->unpin();
-	continue;
-      } else {
-        frames.push_back(frame);
+        frame->unpin();
+        continue;
       }
+      frames.push_back(frame);
+
     } else {
       LOG_TRACE("frame is null, skip the redo action");
       continue;
@@ -273,7 +274,7 @@ BplusTreeMiniTransaction::~BplusTreeMiniTransaction()
   if (nullptr == operation_result_) {
     return;
   }
-  
+
   if (OB_SUCC(*operation_result_)) {
     commit();
   } else {

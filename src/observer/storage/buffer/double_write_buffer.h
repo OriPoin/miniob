@@ -133,7 +133,7 @@ private:
    * @details 每次页面更新都应该写入到磁盘中。保证double write buffer
    * 内存和文件中的数据都是最新的。
    */
-  RC write_page_internal(DoubleWritePage *page);
+  RC write_page_internal(DoubleWritePage *page) const;
 
   /**
    * @brief 将磁盘文件中的内容加载到内存中。在启动时调用

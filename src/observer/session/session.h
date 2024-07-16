@@ -34,15 +34,14 @@ public:
    */
   static Session &default_session();
 
-public:
   Session() = default;
   ~Session();
 
   Session(const Session &other);
   void operator=(Session &) = delete;
 
-  const char *get_current_db_name() const;
-  Db         *get_current_db() const;
+  [[nodiscard]] const char *get_current_db_name() const;
+  [[nodiscard]] Db         *get_current_db() const;
 
   /**
    * @brief 设置当前会话关联的数据库
@@ -59,7 +58,7 @@ public:
   /**
    * @brief 当前事务是否为多语句模式
    */
-  bool is_trx_multi_operation_mode() const;
+  [[nodiscard]] bool is_trx_multi_operation_mode() const;
 
   /**
    * @brief 当前会话关联的事务
@@ -75,15 +74,15 @@ public:
   /**
    * @brief 获取当前正在处理的请求
    */
-  SessionEvent *current_request() const;
+  [[nodiscard]] SessionEvent *current_request() const;
 
-  void set_sql_debug(bool sql_debug) { sql_debug_ = sql_debug; }
-  bool sql_debug_on() const { return sql_debug_; }
+  void               set_sql_debug(bool sql_debug) { sql_debug_ = sql_debug; }
+  [[nodiscard]] bool sql_debug_on() const { return sql_debug_; }
 
-  void          set_execution_mode(const ExecutionMode mode) { execution_mode_ = mode; }
-  ExecutionMode get_execution_mode() const { return execution_mode_; }
+  void                        set_execution_mode(const ExecutionMode mode) { execution_mode_ = mode; }
+  [[nodiscard]] ExecutionMode get_execution_mode() const { return execution_mode_; }
 
-  bool used_chunk_mode() { return used_chunk_mode_; }
+  [[nodiscard]] bool used_chunk_mode() const { return used_chunk_mode_; }
 
   void set_used_chunk_mode(bool used_chunk_mode) { used_chunk_mode_ = used_chunk_mode; }
 

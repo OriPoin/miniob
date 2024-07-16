@@ -19,11 +19,11 @@ See the Mulan PSL v2 for more details. */
 class AggregateVecPhysicalOperator : public PhysicalOperator
 {
 public:
-  AggregateVecPhysicalOperator(std::vector<Expression *> &&expressions);
+  explicit AggregateVecPhysicalOperator(std::vector<Expression *> &&expressions);
 
-  virtual ~AggregateVecPhysicalOperator() = default;
+  ~AggregateVecPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::AGGREGATE_VEC; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::AGGREGATE_VEC; }
 
   RC open(Trx *trx) override;
   RC next(Chunk &chunk) override;
@@ -36,11 +36,10 @@ private:
   template <class STATE, typename T>
   void append_to_column(void *state, Column &column)
   {
-    STATE *state_ptr = reinterpret_cast<STATE *>(state);
-    column.append_one((char *)&state_ptr->value);
+    auto *state_ptr = reinterpret_cast<STATE *>(state);
+    column.append_one(reinterpret_cast<char *>(&state_ptr->value));
   }
 
-private:
   class AggregateValues
   {
   public:

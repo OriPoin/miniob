@@ -26,10 +26,10 @@ class MvccTrxKit : public TrxKit
 {
 public:
   MvccTrxKit() = default;
-  virtual ~MvccTrxKit();
+  ~MvccTrxKit() override;
 
-  RC                       init() override;
-  const vector<FieldMeta> *trx_fields() const override;
+  RC                                     init() override;
+  [[nodiscard]] const vector<FieldMeta> *trx_fields() const override;
 
   Trx *create_trx(LogHandler &log_handler) override;
   Trx *create_trx(LogHandler &log_handler, int32_t trx_id) override;
@@ -44,11 +44,9 @@ public:
 
   LogReplayer *create_log_replayer(Db &db, LogHandler &log_handler) override;
 
-public:
   int32_t next_trx_id();
 
-public:
-  int32_t max_trx_id() const;
+  static int32_t max_trx_id();
 
 private:
   vector<FieldMeta> fields_;  // 存储事务数据需要用到的字段元数据，所有表结构都需要带的
@@ -74,7 +72,7 @@ public:
    */
   MvccTrx(MvccTrxKit &trx_kit, LogHandler &log_handler);
   MvccTrx(MvccTrxKit &trx_kit, LogHandler &log_handler, int32_t trx_id);  // used for recover
-  virtual ~MvccTrx();
+  ~MvccTrx() override;
 
   RC insert_record(Table *table, Record &record) override;
   RC delete_record(Table *table, Record &record) override;
@@ -97,16 +95,14 @@ public:
 
   RC redo(Db *db, const LogEntry &log_entry) override;
 
-  int32_t id() const override { return trx_id_; }
+  [[nodiscard]] int32_t id() const override { return trx_id_; }
 
 private:
-  RC   commit_with_trx_id(int32_t commit_id);
-  void trx_fields(Table *table, Field &begin_xid_field, Field &end_xid_field) const;
+  RC          commit_with_trx_id(int32_t commit_xid);
+  static void trx_fields(Table *table, Field &begin_xid_field, Field &end_xid_field);
 
-private:
   static const int32_t MAX_TRX_ID = numeric_limits<int32_t>::max();
 
-private:
   // using OperationSet = unordered_set<Operation, OperationHasher, OperationEqualer>;
   using OperationSet = vector<Operation>;
 

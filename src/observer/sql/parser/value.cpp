@@ -31,7 +31,7 @@ AttrType attr_type_from_string(const char *s)
 {
   for (unsigned int i = 0; i < sizeof(ATTR_TYPE_NAME) / sizeof(ATTR_TYPE_NAME[0]); i++) {
     if (0 == strcmp(ATTR_TYPE_NAME[i], s)) {
-      return (AttrType)i;
+      return static_cast<AttrType>(i);
     }
   }
   return AttrType::UNDEFINED;
@@ -43,24 +43,24 @@ Value::Value(float val) { set_float(val); }
 
 Value::Value(bool val) { set_boolean(val); }
 
-Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
+Value::Value(const char *s, size_t len /*= 0*/) { set_string(s, len); }
 
-void Value::set_data(char *data, int length)
+void Value::set_data(char *data, size_t length)
 {
   switch (attr_type_) {
     case AttrType::CHARS: {
       set_string(data, length);
     } break;
     case AttrType::INTS: {
-      num_value_.int_value_ = *(int *)data;
+      num_value_.int_value_ = *reinterpret_cast<int *>(data);
       length_               = length;
     } break;
     case AttrType::FLOATS: {
-      num_value_.float_value_ = *(float *)data;
+      num_value_.float_value_ = *reinterpret_cast<float *>(data);
       length_                 = length;
     } break;
     case AttrType::BOOLEANS: {
-      num_value_.bool_value_ = *(int *)data != 0;
+      num_value_.bool_value_ = *reinterpret_cast<int *>(data) != 0;
       length_                = length;
     } break;
     default: {
@@ -87,7 +87,7 @@ void Value::set_boolean(bool val)
   num_value_.bool_value_ = val;
   length_                = sizeof(val);
 }
-void Value::set_string(const char *s, int len /*= 0*/)
+void Value::set_string(const char *s, size_t len /*= 0*/)
 {
   attr_type_ = AttrType::CHARS;
   if (len > 0) {
@@ -127,7 +127,7 @@ const char *Value::data() const
       return str_value_.c_str();
     } break;
     default: {
-      return (const char *)&num_value_;
+      return reinterpret_cast<const char *>(&num_value_);
     } break;
   }
 }
@@ -160,19 +160,22 @@ int Value::compare(const Value &other) const
   if (this->attr_type_ == other.attr_type_) {
     switch (this->attr_type_) {
       case AttrType::INTS: {
-        return common::compare_int((void *)&this->num_value_.int_value_, (void *)&other.num_value_.int_value_);
+        return common::compare_int(reinterpret_cast<const char *>(&this->num_value_.int_value_),
+            reinterpret_cast<const char *>(&other.num_value_.int_value_));
       } break;
       case AttrType::FLOATS: {
-        return common::compare_float((void *)&this->num_value_.float_value_, (void *)&other.num_value_.float_value_);
+        return common::compare_float(reinterpret_cast<const char *>(&this->num_value_.float_value_),
+            reinterpret_cast<const char *>(&other.num_value_.float_value_));
       } break;
       case AttrType::CHARS: {
-        return common::compare_string((void *)this->str_value_.c_str(),
+        return common::compare_string(reinterpret_cast<const char *>(this->str_value_.c_str()),
             this->str_value_.length(),
-            (void *)other.str_value_.c_str(),
+            reinterpret_cast<const char *>(other.str_value_.c_str()),
             other.str_value_.length());
       } break;
       case AttrType::BOOLEANS: {
-        return common::compare_int((void *)&this->num_value_.bool_value_, (void *)&other.num_value_.bool_value_);
+        return common::compare_int(reinterpret_cast<const char *>(&this->num_value_.bool_value_),
+            reinterpret_cast<const char *>(&other.num_value_.bool_value_));
       }
       default: {
         LOG_WARN("unsupported type: %d", this->attr_type_);
@@ -180,13 +183,15 @@ int Value::compare(const Value &other) const
     }
   } else if (this->attr_type_ == AttrType::INTS && other.attr_type_ == AttrType::FLOATS) {
     float this_data = this->num_value_.int_value_;
-    return common::compare_float((void *)&this_data, (void *)&other.num_value_.float_value_);
+    return common::compare_float(
+        reinterpret_cast<const char *>(&this_data), reinterpret_cast<const char *>(&other.num_value_.float_value_));
   } else if (this->attr_type_ == AttrType::FLOATS && other.attr_type_ == AttrType::INTS) {
     float other_data = other.num_value_.int_value_;
-    return common::compare_float((void *)&this->num_value_.float_value_, (void *)&other_data);
+    return common::compare_float(
+        reinterpret_cast<const char *>(&this->num_value_.float_value_), reinterpret_cast<const char *>(&other_data));
   }
   LOG_WARN("not supported");
-  return -1;  // TODO return rc?
+  return -1;  // TODO(unknown): return rc?
 }
 
 int Value::get_int() const
@@ -194,7 +199,7 @@ int Value::get_int() const
   switch (attr_type_) {
     case AttrType::CHARS: {
       try {
-        return (int)(std::stol(str_value_));
+        return static_cast<int>(std::stol(str_value_));
       } catch (std::exception const &ex) {
         LOG_TRACE("failed to convert string to number. s=%s, ex=%s", str_value_.c_str(), ex.what());
         return 0;
@@ -204,10 +209,10 @@ int Value::get_int() const
       return num_value_.int_value_;
     }
     case AttrType::FLOATS: {
-      return (int)(num_value_.float_value_);
+      return static_cast<int>(num_value_.float_value_);
     }
     case AttrType::BOOLEANS: {
-      return (int)(num_value_.bool_value_);
+      return static_cast<int>(num_value_.bool_value_);
     }
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
@@ -229,13 +234,13 @@ float Value::get_float() const
       }
     } break;
     case AttrType::INTS: {
-      return float(num_value_.int_value_);
+      return static_cast<float>(num_value_.int_value_);
     } break;
     case AttrType::FLOATS: {
       return num_value_.float_value_;
     } break;
     case AttrType::BOOLEANS: {
-      return float(num_value_.bool_value_);
+      return static_cast<float>(num_value_.bool_value_);
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);

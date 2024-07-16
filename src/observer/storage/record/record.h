@@ -14,16 +14,13 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stddef.h>
+#include <cstddef>
 
 #include "common/log/log.h"
 #include "common/rc.h"
 #include "common/types.h"
-#include "common/lang/vector.h"
 #include "common/lang/sstream.h"
 #include "common/lang/limits.h"
-#include "storage/field/field_meta.h"
-#include "storage/index/index_meta.h"
 
 class Field;
 
@@ -39,7 +36,7 @@ struct RID
   RID() = default;
   RID(const PageNum _page_num, const SlotNum _slot_num) : page_num(_page_num), slot_num(_slot_num) {}
 
-  const string to_string() const
+  [[nodiscard]] string to_string() const
   {
     stringstream ss;
     ss << "PageNum:" << page_num << ", SlotNum:" << slot_num;
@@ -55,9 +52,8 @@ struct RID
     int page_diff = rid1->page_num - rid2->page_num;
     if (page_diff != 0) {
       return page_diff;
-    } else {
-      return rid1->slot_num - rid2->slot_num;
     }
+    return rid1->slot_num - rid2->slot_num;
   }
 
   /**
@@ -117,7 +113,7 @@ public:
     owner_ = other.owner_;
 
     if (other.owner_) {
-      char *tmp = (char *)malloc(other.len_);
+      char *tmp = static_cast<char *>(malloc(other.len_));
       ASSERT(nullptr != tmp, "failed to allocate memory. size=%d", other.len_);
       memcpy(tmp, other.data_, other.len_);
       data_ = tmp;
@@ -140,7 +136,7 @@ public:
     return *this;
   }
 
-  Record(Record &&other)
+  Record(Record &&other) noexcept
   {
     rid_ = other.rid_;
 
@@ -159,7 +155,7 @@ public:
     }
   }
 
-  Record &operator=(Record &&other)
+  Record &operator=(Record &&other) noexcept
   {
     if (this == &other) {
       return *this;
@@ -188,7 +184,7 @@ public:
   RC copy_data(const char *data, int len)
   {
     ASSERT(len!= 0, "the len of data should not be 0");
-    char *tmp = (char *)malloc(len);
+    char *tmp = static_cast<char *>(malloc(len));
     if (nullptr == tmp) {
       LOG_WARN("failed to allocate memory. size=%d", len);
       return RC::NOMEM;
@@ -202,7 +198,7 @@ public:
   RC new_record(int len)
   {
     ASSERT(len!= 0, "the len of data should not be 0");
-    char *tmp = (char *)malloc(len);
+    char *tmp = static_cast<char *>(malloc(len));
     if (nullptr == tmp) {
       LOG_WARN("failed to allocate memory. size=%d", len);
       return RC::NOMEM;
@@ -226,9 +222,9 @@ public:
     return RC::SUCCESS;
   }
 
-  char       *data() { return this->data_; }
-  const char *data() const { return this->data_; }
-  int         len() const { return this->len_; }
+  char                     *data() { return this->data_; }
+  [[nodiscard]] const char *data() const { return this->data_; }
+  [[nodiscard]] int         len() const { return this->len_; }
 
   void set_rid(const RID &rid) { this->rid_ = rid; }
   void set_rid(const PageNum page_num, const SlotNum slot_num)
@@ -236,8 +232,8 @@ public:
     this->rid_.page_num = page_num;
     this->rid_.slot_num = slot_num;
   }
-  RID       &rid() { return rid_; }
-  const RID &rid() const { return rid_; }
+  RID                     &rid() { return rid_; }
+  [[nodiscard]] const RID &rid() const { return rid_; }
 
 private:
   RID rid_;

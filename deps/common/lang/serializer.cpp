@@ -12,7 +12,7 @@ See the Mulan PSL v2 for more details. */
 // Created by wangyunlai.wyl on 2024/02/20.
 //
 
-#include <string.h>
+#include <cstring>
 
 #include "common/lang/serializer.h"
 

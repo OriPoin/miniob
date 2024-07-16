@@ -14,10 +14,8 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <fcntl.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdint>
+#include <cstdlib>
 #include <sys/stat.h>
 #include <sys/types.h>
 

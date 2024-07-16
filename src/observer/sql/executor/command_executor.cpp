@@ -34,48 +34,48 @@ RC CommandExecutor::execute(SQLStageEvent *sql_event)
   switch (stmt->type()) {
     case StmtType::CREATE_INDEX: {
       CreateIndexExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = CreateIndexExecutor::execute(sql_event);
     } break;
 
     case StmtType::CREATE_TABLE: {
       CreateTableExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = CreateTableExecutor::execute(sql_event);
     } break;
 
     case StmtType::DESC_TABLE: {
       DescTableExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = DescTableExecutor::execute(sql_event);
     } break;
 
     case StmtType::HELP: {
       HelpExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = HelpExecutor::execute(sql_event);
     } break;
 
     case StmtType::SHOW_TABLES: {
       ShowTablesExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = ShowTablesExecutor::execute(sql_event);
     } break;
 
     case StmtType::BEGIN: {
       TrxBeginExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = TrxBeginExecutor::execute(sql_event);
     } break;
 
     case StmtType::COMMIT:
     case StmtType::ROLLBACK: {
       TrxEndExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = TrxEndExecutor::execute(sql_event);
     } break;
 
     case StmtType::SET_VARIABLE: {
       SetVariableExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = SetVariableExecutor::execute(sql_event);
     } break;
 
     case StmtType::LOAD_DATA: {
       LoadDataExecutor executor;
-      rc = executor.execute(sql_event);
+      rc = LoadDataExecutor::execute(sql_event);
     } break;
 
     case StmtType::EXIT: {

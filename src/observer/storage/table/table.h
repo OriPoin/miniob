@@ -82,14 +82,14 @@ public:
 
   RC recover_insert_record(Record &record);
 
-  // TODO refactor
+  // TODO(unknown): refactor
   RC create_index(Trx *trx, const FieldMeta *field_meta, const char *index_name);
 
   RC get_record_scanner(RecordFileScanner &scanner, Trx *trx, ReadWriteMode mode);
 
   RC get_chunk_scanner(ChunkFileScanner &scanner, Trx *trx, ReadWriteMode mode);
 
-  RecordFileHandler *record_handler() const { return record_handler_; }
+  [[nodiscard]] RecordFileHandler *record_handler() const { return record_handler_; }
 
   /**
    * @brief 可以在页面锁保护的情况下访问记录
@@ -100,13 +100,12 @@ public:
    */
   RC visit_record(const RID &rid, function<bool(Record &)> visitor);
 
-public:
-  int32_t     table_id() const { return table_meta_.table_id(); }
-  const char *name() const;
+  [[nodiscard]] int32_t     table_id() const { return table_meta_.table_id(); }
+  [[nodiscard]] const char *name() const;
 
-  Db *db() const { return db_; }
+  [[nodiscard]] Db *db() const { return db_; }
 
-  const TableMeta &table_meta() const;
+  [[nodiscard]] const TableMeta &table_meta() const;
 
   RC sync();
 
@@ -114,7 +113,6 @@ private:
   RC insert_entry_of_indexes(const char *record, const RID &rid);
   RC delete_entry_of_indexes(const char *record, const RID &rid, bool error_on_not_exists);
 
-private:
   RC init_record_handler(const char *base_dir);
 
 public:

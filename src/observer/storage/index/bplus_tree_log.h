@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stddef.h>
+// #include <cstddef>
 
 #include "common/types.h"
 #include "common/rc.h"
@@ -146,7 +146,7 @@ public:
   static string log_entry_to_string(const LogEntry &entry);
 
 private:
-  RC __redo(LSN lsn, BplusTreeMiniTransaction &mtr, BplusTreeHandler &tree_handler, common::Deserializer &redo_buffer);
+  RC _redo(LSN lsn, BplusTreeMiniTransaction &mtr, BplusTreeHandler &tree_handler, common::Deserializer &redo_buffer);
 
 protected:
   RC append_log_entry(unique_ptr<bplus_tree::LogEntryHandler> entry);
@@ -174,7 +174,7 @@ public:
    * @param tree_handler B+树处理器
    * @param operation_result 操作结果。如果不为nullptr，会在事务结束后，自动根据结果来提交或回滚。
    */
-  BplusTreeMiniTransaction(BplusTreeHandler &tree_handler, RC *operation_result = nullptr);
+  explicit BplusTreeMiniTransaction(BplusTreeHandler &tree_handler, RC *operation_result = nullptr);
   ~BplusTreeMiniTransaction();
 
   LatchMemo       &latch_memo() { return latch_memo_; }
@@ -197,11 +197,11 @@ private:
 class BplusTreeLogReplayer final : public LogReplayer
 {
 public:
-  BplusTreeLogReplayer(BufferPoolManager &bpm);
-  virtual ~BplusTreeLogReplayer() = default;
+  explicit BplusTreeLogReplayer(BufferPoolManager &bpm);
+  ~BplusTreeLogReplayer() override = default;
 
   /// @copydoc LogReplayer::replay
-  virtual RC replay(const LogEntry &entry) override;
+  RC replay(const LogEntry &entry) override;
 
 private:
   BufferPoolManager &buffer_pool_manager_;

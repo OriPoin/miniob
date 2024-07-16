@@ -30,15 +30,13 @@ public:
   InsertStmt() = default;
   InsertStmt(Table *table, const Value *values, int value_amount);
 
-  StmtType type() const override { return StmtType::INSERT; }
+  [[nodiscard]] StmtType type() const override { return StmtType::INSERT; }
 
-public:
   static RC create(Db *db, const InsertSqlNode &insert_sql, Stmt *&stmt);
 
-public:
-  Table       *table() const { return table_; }
-  const Value *values() const { return values_; }
-  int          value_amount() const { return value_amount_; }
+  [[nodiscard]] Table       *table() const { return table_; }
+  [[nodiscard]] const Value *values() const { return values_; }
+  [[nodiscard]] int          value_amount() const { return value_amount_; }
 
 private:
   Table       *table_        = nullptr;

@@ -30,7 +30,7 @@ public:
   TrxBeginExecutor()          = default;
   virtual ~TrxBeginExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event)
+  static RC execute(SQLStageEvent *sql_event)
   {
     SessionEvent *session_event = sql_event->session_event();
 

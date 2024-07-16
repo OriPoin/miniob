@@ -13,8 +13,8 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include "gtest/gtest.h"
+#include <filesystem>
 #include "common/lang/serializer.h"
-#include "common/lang/filesystem.h"
 #include "common/log/log.h"
 
 using namespace common;
@@ -61,7 +61,7 @@ TEST(Serializer, serializer)
 int main(int argc, char **argv)
 {
   testing::InitGoogleTest(&argc, argv);
-  filesystem::path log_filename = filesystem::path(argv[0]).filename();
+  std::filesystem::path log_filename = std::filesystem::path(argv[0]).filename();
   LoggerFactory::init_default(log_filename.string() + ".log", LOG_LEVEL_TRACE);
   return RUN_ALL_TESTS();
 }

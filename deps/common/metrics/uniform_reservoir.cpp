@@ -14,8 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/metrics/uniform_reservoir.h"
 
-#include <stdint.h>
-
 #include "common/lang/mutex.h"
 #include "common/metrics/histogram_snapshot.h"
 
@@ -47,9 +45,9 @@ UniformReservoir::UniformReservoir(RandomGenerator &random, size_t size) : Reser
 
 UniformReservoir::~UniformReservoir()
 {
-  if (snapshot_value_ == NULL) {
+  if (snapshot_value_ == nullptr) {
     delete snapshot_value_;
-    snapshot_value_ = NULL;
+    snapshot_value_ = nullptr;
   }
 }
 
@@ -98,10 +96,10 @@ void UniformReservoir::snapshot()
   std::vector<double> output = data;
   MUTEX_UNLOCK(&mutex);
 
-  if (snapshot_value_ == NULL) {
+  if (snapshot_value_ == nullptr) {
     snapshot_value_ = new HistogramSnapShot();
   }
-  ((HistogramSnapShot *)snapshot_value_)->set_collection(output);
+  (reinterpret_cast<HistogramSnapShot *>(snapshot_value_))->set_collection(output);
 }
 
 void UniformReservoir::reset()

@@ -23,47 +23,47 @@ class ProcessParam
 {
 
 public:
-  ProcessParam() {}
+  ProcessParam() = default;
 
-  virtual ~ProcessParam() {}
+  virtual ~ProcessParam() = default;
 
   void init_default(string &process_name);
 
-  const string &get_std_out() const { return std_out_; }
+  [[nodiscard]] const string &get_std_out() const { return std_out_; }
 
   void set_std_out(const string &std_out) { ProcessParam::std_out_ = std_out; }
 
-  const string &get_std_err() const { return std_err_; }
+  [[nodiscard]] const string &get_std_err() const { return std_err_; }
 
   void set_std_err(const string &std_err) { ProcessParam::std_err_ = std_err; }
 
-  const string &get_conf() const { return conf; }
+  [[nodiscard]] const string &get_conf() const { return conf; }
 
   void set_conf(const string &conf) { ProcessParam::conf = conf; }
 
-  const string &get_process_name() const { return process_name_; }
+  [[nodiscard]] const string &get_process_name() const { return process_name_; }
 
   void set_process_name(const string &processName) { ProcessParam::process_name_ = processName; }
 
-  bool is_demon() const { return demon; }
+  [[nodiscard]] bool is_demon() const { return demon; }
 
   void set_demon(bool demon) { ProcessParam::demon = demon; }
 
-  const vector<string> &get_args() const { return args; }
+  [[nodiscard]] const vector<string> &get_args() const { return args; }
 
   void set_args(const vector<string> &args) { ProcessParam::args = args; }
 
   void set_server_port(int port) { server_port_ = port; }
 
-  int get_server_port() const { return server_port_; }
+  [[nodiscard]] int get_server_port() const { return server_port_; }
 
   void set_unix_socket_path(const char *unix_socket_path) { unix_socket_path_ = unix_socket_path; }
 
-  const string &get_unix_socket_path() const { return unix_socket_path_; }
+  [[nodiscard]] const string &get_unix_socket_path() const { return unix_socket_path_; }
 
   void set_protocol(const char *protocol) { protocol_ = protocol; }
 
-  const string &get_protocol() const { return protocol_; }
+  [[nodiscard]] const string &get_protocol() const { return protocol_; }
 
   void set_trx_kit_name(const char *kit_name)
   {
@@ -71,7 +71,7 @@ public:
       trx_kit_name_ = kit_name;
     }
   }
-  const string &trx_kit_name() const { return trx_kit_name_; }
+  [[nodiscard]] const string &trx_kit_name() const { return trx_kit_name_; }
 
   void set_thread_handling_name(const char *thread_handling_name)
   {
@@ -80,14 +80,14 @@ public:
     }
   }
 
-  const string &thread_handling_name() const { return thread_handling_name_; }
+  [[nodiscard]] const string &thread_handling_name() const { return thread_handling_name_; }
 
   void set_buffer_pool_memory_size(int bytes) { buffer_pool_memory_size_ = bytes; }
 
-  int buffer_pool_memory_size() const { return buffer_pool_memory_size_; }
+  [[nodiscard]] int buffer_pool_memory_size() const { return buffer_pool_memory_size_; }
 
-  void          set_durability_mode(const char *mode) { durability_mode_ = mode; }
-  const string &durability_mode() const { return durability_mode_; }
+  void                        set_durability_mode(const char *mode) { durability_mode_ = mode; }
+  [[nodiscard]] const string &durability_mode() const { return durability_mode_; }
 
 private:
   string         std_out_;           // The output file

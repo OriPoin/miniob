@@ -12,13 +12,12 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/06/25.
 //
 
-#include <setjmp.h>
-#include <signal.h>
+#include <csetjmp>
+#include <csignal>
 
 #include "net/cli_communicator.h"
 #include "common/lang/string.h"
 #include "common/log/log.h"
-#include "common/os/signal.h"
 #include "event/session_event.h"
 #include "net/buffered_writer.h"
 #include "session/session.h"
@@ -39,7 +38,8 @@ time_t       last_history_write_time = 0;
 sigjmp_buf   ctrlc_buf;
 bool         ctrlc_flag = false;
 
-void handle_signals(int signo) {
+void handle_signals(int signo)
+{
   if (signo == SIGINT) {
     ctrlc_flag = true;
     siglongjmp(ctrlc_buf, 1);
@@ -61,10 +61,11 @@ char *my_readline(const char *prompt)
     }
   }
 
-  while ( sigsetjmp( ctrlc_buf, 1 ) != 0 );
+  while (sigsetjmp(ctrlc_buf, 1) != 0)
+    ;
 
   if (ctrlc_flag) {
-    char *line = (char *)malloc(strlen("exit") + 1);
+    char *line = static_cast<char *>(malloc(strlen("exit") + 1));
     strcpy(line, "exit");
     printf("\n");
     return line;
@@ -73,7 +74,7 @@ char *my_readline(const char *prompt)
   char *line = readline(prompt);
   if (line != nullptr && line[0] != 0) {
     add_history(line);
-    if (time(NULL) - last_history_write_time > 5) {
+    if (time(nullptr) - last_history_write_time > 5) {
       write_history(HISTORY_FILE.c_str());
     }
     // append_history doesn't work on some readlines
@@ -114,10 +115,8 @@ char *my_readline(const char *prompt)
 */
 bool is_exit_command(const char *cmd)
 {
-  return 0 == strncasecmp("exit", cmd, 4) 
-      || 0 == strncasecmp("bye", cmd, 3) 
-      || 0 == strncasecmp("\\q", cmd, 2)
-      || 0 == strncasecmp("interrupted", cmd, 11);
+  return 0 == strncasecmp("exit", cmd, 4) || 0 == strncasecmp("bye", cmd, 3) || 0 == strncasecmp("\\q", cmd, 2) ||
+         0 == strncasecmp("interrupted", cmd, 11);
 }
 
 char *read_command()

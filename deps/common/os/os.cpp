@@ -14,7 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include <execinfo.h>
 
-#include "common/defs.h"
 #include "common/log/log.h"
 #include "common/os/os.h"
 #include "common/lang/thread.h"

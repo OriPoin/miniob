@@ -11,7 +11,6 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/operator/physical_operator.h"
-#include "sql/expr/expression_tuple.h"
 
 /**
  * @brief 选择/投影物理算子(vectorized)
@@ -20,12 +19,12 @@ See the Mulan PSL v2 for more details. */
 class ProjectVecPhysicalOperator : public PhysicalOperator
 {
 public:
-  ProjectVecPhysicalOperator() {}
-  ProjectVecPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions);
+  ProjectVecPhysicalOperator() = default;
+  explicit ProjectVecPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions);
 
-  virtual ~ProjectVecPhysicalOperator() = default;
+  ~ProjectVecPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::PROJECT_VEC; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::PROJECT_VEC; }
 
   RC open(Trx *trx) override;
   RC next(Chunk &chunk) override;

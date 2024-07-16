@@ -26,7 +26,7 @@ public:
   Chunk(const Chunk &) = delete;
   Chunk(Chunk &&)      = delete;
 
-  int column_num() const { return columns_.size(); }
+  [[nodiscard]] int column_num() const { return columns_.size(); }
 
   Column &column(size_t idx)
   {
@@ -53,12 +53,12 @@ public:
   /**
    * @brief 获取 Chunk 中的行数
    */
-  int rows() const;
+  [[nodiscard]] int rows() const;
 
   /**
    * @brief 获取 Chunk 的容量
    */
-  int capacity() const;
+  [[nodiscard]] int capacity() const;
 
   /**
    * @brief 从 Chunk 中获得指定行指定列的 Value
@@ -68,7 +68,7 @@ public:
    * @note 没有检查 col_idx 和 row_idx 是否越界
    *
    */
-  Value get_value(int col_idx, int row_idx) const { return columns_[col_idx]->get_value(row_idx); }
+  [[nodiscard]] Value get_value(int col_idx, int row_idx) const { return columns_[col_idx]->get_value(row_idx); }
 
   /**
    * @brief 重置 Chunk 中的数据，不会修改 Chunk 的列属性。
@@ -79,7 +79,7 @@ public:
 
 private:
   vector<unique_ptr<Column>> columns_;
-  // TODO: remove it and support multi-tables,
+  // TODO(unknown): remove it and support multi-tables,
   // `columnd_ids` store the ids of child operator that need to be output
   vector<int> column_ids_;
 };

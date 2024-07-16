@@ -22,7 +22,7 @@ RingBuffer::RingBuffer() : RingBuffer(DEFAULT_BUFFER_SIZE) {}
 
 RingBuffer::RingBuffer(int32_t size) : buffer_(size) {}
 
-RingBuffer::~RingBuffer() {}
+RingBuffer::~RingBuffer() = default;
 
 RC RingBuffer::read(char *buf, int32_t size, int32_t &read_size)
 {
@@ -82,7 +82,7 @@ RC RingBuffer::forward(int32_t size)
   return RC::SUCCESS;
 }
 
-RC RingBuffer::write(const char *data, int32_t size, int32_t &write_size)
+RC RingBuffer::write(const char *buf, int32_t size, int32_t &write_size)
 {
   if (size < 0) {
     return RC::INVALID_ARGUMENT;
@@ -96,7 +96,7 @@ RC RingBuffer::write(const char *data, int32_t size, int32_t &write_size)
     const int32_t tmp_buf_size = (read_pos <= write_pos_) ? (capacity() - write_pos_) : (read_pos - write_pos_);
 
     const int32_t copy_size = min(size - write_size, tmp_buf_size);
-    memcpy(buffer_.data() + write_pos_, data + write_size, copy_size);
+    memcpy(buffer_.data() + write_pos_, buf + write_size, copy_size);
     write_size += copy_size;
     write_pos_ = (write_pos_ + copy_size) % capacity();
     data_size_ += copy_size;

@@ -17,12 +17,11 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/value.h"
 #include "storage/record/record_manager.h"
 #include "storage/table/table.h"
-#include <math.h>
-#include <stddef.h>
+#include <cmath>
 
 using namespace common;
 
-ConditionFilter::~ConditionFilter() {}
+ConditionFilter::~ConditionFilter() = default;
 
 DefaultConditionFilter::DefaultConditionFilter()
 {
@@ -34,7 +33,7 @@ DefaultConditionFilter::DefaultConditionFilter()
   right_.attr_length = 0;
   right_.attr_offset = 0;
 }
-DefaultConditionFilter::~DefaultConditionFilter() {}
+DefaultConditionFilter::~DefaultConditionFilter() = default;
 
 RC DefaultConditionFilter::init(const ConDesc &left, const ConDesc &right, AttrType attr_type, CompOp comp_op)
 {
@@ -150,7 +149,7 @@ bool DefaultConditionFilter::filter(const Record &rec) const
   }
 
   LOG_PANIC("Never should print this.");
-  return cmp_result;  // should not go here
+  return cmp_result != 0;  // should not go here
 }
 
 CompositeConditionFilter::~CompositeConditionFilter()
@@ -182,11 +181,11 @@ RC CompositeConditionFilter::init(Table &table, const ConditionSqlNode *conditio
     return RC::INVALID_ARGUMENT;
   }
 
-  RC                rc                = RC::SUCCESS;
-  ConditionFilter **condition_filters = new ConditionFilter *[condition_num];
+  RC     rc                = RC::SUCCESS;
+  auto **condition_filters = new ConditionFilter *[condition_num];
   for (int i = 0; i < condition_num; i++) {
-    DefaultConditionFilter *default_condition_filter = new DefaultConditionFilter();
-    rc                                               = default_condition_filter->init(table, conditions[i]);
+    auto *default_condition_filter = new DefaultConditionFilter();
+    rc                             = default_condition_filter->init(table, conditions[i]);
     if (rc != RC::SUCCESS) {
       delete default_condition_filter;
       for (int j = i - 1; j >= 0; j--) {
@@ -199,7 +198,7 @@ RC CompositeConditionFilter::init(Table &table, const ConditionSqlNode *conditio
     }
     condition_filters[i] = default_condition_filter;
   }
-  return init((const ConditionFilter **)condition_filters, condition_num, true);
+  return init(static_cast<const ConditionFilter **>(static_cast<void *>(condition_filters)), condition_num, true);
 }
 
 bool CompositeConditionFilter::filter(const Record &rec) const

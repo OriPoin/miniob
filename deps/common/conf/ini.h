@@ -15,10 +15,6 @@ See the Mulan PSL v2 for more details. */
 #if !defined(__COMMON_CONF_INI_H__)
 #define __COMMON_CONF_INI_H__
 
-#include <stdio.h>
-
-#include <iostream>
-
 #include "common/lang/map.h"
 #include "common/lang/set.h"
 #include "common/lang/string.h"
@@ -46,7 +42,7 @@ public:
    * it support load multiple ini configuration files
    * @return, 0 means success, others means failed
    */
-  int load(const string &ini_file);
+  int load(const string &file_name);
 
   /**
    * get the map of the section
@@ -59,7 +55,7 @@ public:
    * if the key-value doesn't exist,
    * use the input default_value
    */
-  string get(const string &key, const string &default_value, const string &section = DEFAULT_SECTION);
+  string get(const string &key, const string &defaultValue, const string &section = DEFAULT_SECTION);
 
   /**
    * put the key-value pair to the section
@@ -108,9 +104,9 @@ protected:
    * line's format is "key=value"
    *
    */
-  int insert_entry(map<string, string> *session_map, const string &line);
+  static int insert_entry(map<string, string> *session_map, const string &line);
 
-  typedef map<string, map<string, string>> SessionsMap;
+  using SessionsMap = map<string, map<string, string>>;
 
 private:
   static const map<string, string> empty_map_;

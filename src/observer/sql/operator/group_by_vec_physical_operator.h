@@ -21,14 +21,14 @@ class GroupByVecPhysicalOperator : public PhysicalOperator
 {
 public:
   GroupByVecPhysicalOperator(
-      std::vector<std::unique_ptr<Expression>> &&group_by_exprs, std::vector<Expression *> &&expressions){};
+      std::vector<std::unique_ptr<Expression>> && /*group_by_exprs*/, std::vector<Expression *> && /*expressions*/){};
 
-  virtual ~GroupByVecPhysicalOperator() = default;
+  ~GroupByVecPhysicalOperator() override = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::GROUP_BY_VEC; }
+  [[nodiscard]] PhysicalOperatorType type() const override { return PhysicalOperatorType::GROUP_BY_VEC; }
 
-  RC open(Trx *trx) override { return RC::UNIMPLENMENT; }
-  RC next(Chunk &chunk) override { return RC::UNIMPLENMENT; }
+  RC open(Trx * /*trx*/) override { return RC::UNIMPLENMENT; }
+  RC next(Chunk & /*chunk*/) override { return RC::UNIMPLENMENT; }
   RC close() override { return RC::UNIMPLENMENT; }
 
 private:

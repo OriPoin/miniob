@@ -13,7 +13,7 @@ See the Mulan PSL v2 for more details. */
 //
 #pragma once
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "common/lang/random.h"
 
@@ -28,7 +28,6 @@ public:
   RandomGenerator();
   virtual ~RandomGenerator();
 
-public:
   unsigned int next();
   unsigned int next(unsigned int range);
 

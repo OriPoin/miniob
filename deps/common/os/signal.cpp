@@ -70,8 +70,8 @@ void unblock_default_signals(sigset_t *signal_set, sigset_t *old_set)
 void *wait_for_signals(void *args)
 {
   LOG_INFO("Start thread to wait signals.");
-  sigset_t *signal_set = (sigset_t *)args;
-  int       sig_number = -1;
+  auto *signal_set = static_cast<sigset_t *>(args);
+  int   sig_number = -1;
   while (true) {
     errno   = 0;
     int ret = sigwait(signal_set, &sig_number);
@@ -80,7 +80,7 @@ void *wait_for_signals(void *args)
       LOG_ERROR("error (%d) %s\n", errno, strerror(errno));
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 void start_wait_for_signals(sigset_t *signal_set)
@@ -92,6 +92,6 @@ void start_wait_for_signals(sigset_t *signal_set)
   pthread_attr_init(&pThreadAttrs);
   pthread_attr_setdetachstate(&pThreadAttrs, PTHREAD_CREATE_DETACHED);
 
-  pthread_create(&pThread, &pThreadAttrs, wait_for_signals, (void *)signal_set);
+  pthread_create(&pThread, &pThreadAttrs, wait_for_signals, reinterpret_cast<void *>(signal_set));
 }
 }  // namespace common

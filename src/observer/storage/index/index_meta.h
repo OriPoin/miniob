@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include "common/lang/iostream.h"
 #include "common/rc.h"
 #include "common/lang/string.h"
 
@@ -37,13 +38,11 @@ public:
 
   RC init(const char *name, const FieldMeta &field);
 
-public:
-  const char *name() const;
-  const char *field() const;
+  [[nodiscard]] const char *name() const;
+  [[nodiscard]] const char *field() const;
 
   void desc(ostream &os) const;
 
-public:
   void      to_json(Json::Value &json_value) const;
   static RC from_json(const TableMeta &table, const Json::Value &json_value, IndexMeta &index);
 

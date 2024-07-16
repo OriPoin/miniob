@@ -16,10 +16,12 @@ See the Mulan PSL v2 for more details. */
  */
 
 #include <netinet/in.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "common/ini_setting.h"
 #include "common/init.h"
+#include "common/conf/ini.h"
 #include "common/lang/iostream.h"
 #include "common/lang/string.h"
 #include "common/lang/map.h"
@@ -86,11 +88,11 @@ Server *init_server()
 
   ProcessParam *process_param = the_process_param();
 
-  long listen_addr        = INADDR_ANY;
-  long max_connection_num = MAX_CONNECTION_NUM_DEFAULT;
-  int  port               = PORT_DEFAULT;
+  u_int64_t listen_addr        = INADDR_ANY;
+  u_int64_t max_connection_num = MAX_CONNECTION_NUM_DEFAULT;
+  int       port               = PORT_DEFAULT;
 
-  map<string, string>::iterator it = net_section.find(CLIENT_ADDRESS);
+  auto it = net_section.find(CLIENT_ADDRESS);
   if (it != net_section.end()) {
     string str = it->second;
     str_to_val(str, listen_addr);
@@ -149,7 +151,7 @@ Server *init_server()
  */
 void *quit_thread_func(void *_signum)
 {
-  intptr_t signum = (intptr_t)_signum;
+  auto signum = reinterpret_cast<intptr_t>(_signum);
   LOG_INFO("Receive signal: %ld", signum);
   if (g_server) {
     g_server->shutdown();
@@ -164,7 +166,7 @@ void quit_signal_handle(int signum)
   set_signal_handler(nullptr);
 
   pthread_t tid;
-  pthread_create(&tid, nullptr, quit_thread_func, (void *)(intptr_t)signum);
+  pthread_create(&tid, nullptr, quit_thread_func, reinterpret_cast<void *>(static_cast<intptr_t>(signum)));
 }
 
 const char *startup_tips = R"(

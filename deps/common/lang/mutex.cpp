@@ -17,11 +17,11 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 namespace common {
 
-map<pthread_mutex_t *, LockTrace::LockID>   LockTrace::mLocks;
-map<pthread_mutex_t *, int>                 LockTrace::mWaitTimes;
-map<long long, pthread_mutex_t *>           LockTrace::mWaitLocks;
-map<long long, set<pthread_mutex_t *>> LockTrace::mOwnLocks;
-set<pthread_mutex_t *>                      LockTrace::mEnableRecurisives;
+map<pthread_mutex_t *, LockTrace::LockID> LockTrace::mLocks;
+map<pthread_mutex_t *, int>               LockTrace::mWaitTimes;
+map<long long, pthread_mutex_t *>         LockTrace::mWaitLocks;
+map<long long, set<pthread_mutex_t *>>    LockTrace::mOwnLocks;
+set<pthread_mutex_t *>                    LockTrace::mEnableRecurisives;
 
 pthread_rwlock_t LockTrace::mMapMutex     = PTHREAD_RWLOCK_INITIALIZER;
 int              LockTrace::mMaxBlockTids = 8;
@@ -179,7 +179,7 @@ void LockTrace::insertLock(pthread_mutex_t *mutex, const long long threadId, con
   set<pthread_mutex_t *> &ownLockSet = mOwnLocks[threadId];
   ownLockSet.insert(mutex);
 
-  map<pthread_mutex_t *, int>::iterator itTimes = mWaitTimes.find(mutex);
+  auto itTimes = mWaitTimes.find(mutex);
   if (itTimes == mWaitTimes.end()) {
     LOG_ERROR("No entry of %p:%s:%d in mWaitTimes", mutex, file, line);
 

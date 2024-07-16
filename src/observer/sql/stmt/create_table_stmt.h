@@ -15,8 +15,10 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "common/types.h"
 #include "sql/stmt/stmt.h"
 
 class Db;
@@ -29,17 +31,16 @@ class Db;
 class CreateTableStmt : public Stmt
 {
 public:
-  CreateTableStmt(
-      const std::string &table_name, const std::vector<AttrInfoSqlNode> &attr_infos, StorageFormat storage_format)
-      : table_name_(table_name), attr_infos_(attr_infos), storage_format_(storage_format)
+  CreateTableStmt(std::string table_name, const std::vector<AttrInfoSqlNode> &attr_infos, StorageFormat storage_format)
+      : table_name_(std::move(table_name)), attr_infos_(attr_infos), storage_format_(storage_format)
   {}
-  virtual ~CreateTableStmt() = default;
+  ~CreateTableStmt() override = default;
 
-  StmtType type() const override { return StmtType::CREATE_TABLE; }
+  [[nodiscard]] StmtType type() const override { return StmtType::CREATE_TABLE; }
 
-  const std::string                  &table_name() const { return table_name_; }
-  const std::vector<AttrInfoSqlNode> &attr_infos() const { return attr_infos_; }
-  const StorageFormat                 storage_format() const { return storage_format_; }
+  [[nodiscard]] const std::string                  &table_name() const { return table_name_; }
+  [[nodiscard]] const std::vector<AttrInfoSqlNode> &attr_infos() const { return attr_infos_; }
+  [[nodiscard]] StorageFormat                       storage_format() const { return storage_format_; }
 
   static RC            create(Db *db, const CreateTableSqlNode &create_table, Stmt *&stmt);
   static StorageFormat get_storage_format(const char *format_str);

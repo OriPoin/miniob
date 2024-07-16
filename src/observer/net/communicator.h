@@ -104,5 +104,5 @@ enum class CommunicateProtocol
 class CommunicatorFactory
 {
 public:
-  Communicator *create(CommunicateProtocol protocol);
+  static Communicator *create(CommunicateProtocol protocol);
 };

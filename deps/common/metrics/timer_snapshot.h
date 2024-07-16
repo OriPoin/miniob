@@ -21,12 +21,12 @@ class TimerSnapshot : public HistogramSnapShot
 {
 public:
   TimerSnapshot();
-  virtual ~TimerSnapshot();
+  ~TimerSnapshot() override;
 
-  double get_tps();
-  void   set_tps(double tps);
+  [[nodiscard]] double get_tps() const;
+  void                 set_tps(double tps);
 
-  std::string to_string();
+  std::string to_string() override;
 
 protected:
   double tps = 1.0;

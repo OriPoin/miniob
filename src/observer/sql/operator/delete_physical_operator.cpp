@@ -40,8 +40,8 @@ RC DeletePhysicalOperator::open(Trx *trx)
       return rc;
     }
 
-    RowTuple *row_tuple = static_cast<RowTuple *>(tuple);
-    Record   &record    = row_tuple->record();
+    auto   *row_tuple = static_cast<RowTuple *>(tuple);
+    Record &record    = row_tuple->record();
     records_.emplace_back(std::move(record));
   }
 
@@ -60,12 +60,6 @@ RC DeletePhysicalOperator::open(Trx *trx)
   return RC::SUCCESS;
 }
 
-RC DeletePhysicalOperator::next()
-{
-  return RC::RECORD_EOF;
-}
+RC DeletePhysicalOperator::next() { return RC::RECORD_EOF; }
 
-RC DeletePhysicalOperator::close()
-{
-  return RC::SUCCESS;
-}
+RC DeletePhysicalOperator::close() { return RC::SUCCESS; }

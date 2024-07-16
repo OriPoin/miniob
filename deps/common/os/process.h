@@ -23,7 +23,7 @@ namespace common {
  * @param[in]   prog_full_name  process full name with full path
  * @return      process_name_   process name without directory path
  */
-string get_process_name(const char *prog_full_name);
+string get_process_name(const char *prog_name);
 //! Runs the service as a daemon
 /**
  * Backgrounds the calling service as a system daemon by detaching it from

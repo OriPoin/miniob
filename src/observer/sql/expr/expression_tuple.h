@@ -24,12 +24,12 @@ template <typename ExprPointerType>
 class ExpressionTuple : public Tuple
 {
 public:
-  ExpressionTuple(const std::vector<ExprPointerType> &expressions) : expressions_(expressions) {}
-  virtual ~ExpressionTuple() = default;
+  explicit ExpressionTuple(const std::vector<ExprPointerType> &expressions) : expressions_(expressions) {}
+  ~ExpressionTuple() override = default;
 
   void set_tuple(const Tuple *tuple) { child_tuple_ = tuple; }
 
-  int cell_num() const override { return static_cast<int>(expressions_.size()); }
+  [[nodiscard]] int cell_num() const override { return static_cast<int>(expressions_.size()); }
 
   RC cell_at(int index, Value &cell) const override
   {
@@ -85,7 +85,6 @@ private:
     return rc;
   }
 
-private:
   const std::vector<ExprPointerType> &expressions_;
   const Tuple                        *child_tuple_ = nullptr;
 };

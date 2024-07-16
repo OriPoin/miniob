@@ -15,10 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "common/rc.h"
-#include "event/session_event.h"
 #include "event/sql_event.h"
-#include "session/session.h"
-#include "sql/stmt/set_variable_stmt.h"
 
 /**
  * @brief SetVariable语句执行器
@@ -30,10 +27,10 @@ public:
   SetVariableExecutor()          = default;
   virtual ~SetVariableExecutor() = default;
 
-  RC execute(SQLStageEvent *sql_event);
+  static RC execute(SQLStageEvent *sql_event);
 
 private:
-  RC var_value_to_boolean(const Value &var_value, bool &bool_value) const;
+  static RC var_value_to_boolean(const Value &var_value, bool &bool_value);
 
-  RC get_execution_mode(const Value &var_value, ExecutionMode &execution_mode) const;
+  static RC get_execution_mode(const Value &var_value, ExecutionMode &execution_mode);
 };

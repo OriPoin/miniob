@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/span.h"
 #include "common/lang/map.h"
 #include "common/lang/string.h"
-#include "common/lang/memory.h"
+#include <filesystem>
 
 class Trx;
 class TrxKit;
@@ -54,7 +54,7 @@ public:
    * @details 当前并没有实现
    * @param dbname 数据库名称
    */
-  RC drop_db(const char *dbname);
+  static RC drop_db(const char *dbname);
 
   /**
    * @brief 打开一个数据库
@@ -66,7 +66,7 @@ public:
    * @brief 关闭指定数据库。
    * @details 该操作将关闭当前数据库中打开的所有文件，关闭文件操作将自动使所有相关的缓冲区页面更新到磁盘
    */
-  RC close_db(const char *dbname);
+  static RC close_db(const char *dbname);
 
   /**
    * @brief 在指定的数据库下创建一个表
@@ -74,7 +74,7 @@ public:
    * @param relation_name 表名
    * @param attributes 属性信息
    */
-  RC create_table(const char *dbname, const char *relation_name, span<const AttrInfoSqlNode> attributes);
+  RC create_table(const char *dbname, const char *relation_name, span<const AttrInfoSqlNode> attributes) const;
 
   /**
    * @brief 删除指定数据库下的表
@@ -82,18 +82,17 @@ public:
    * @param dbname 数据库名称
    * @param relation_name 表名
    */
-  RC drop_table(const char *dbname, const char *relation_name);
+  static RC drop_table(const char *dbname, const char *relation_name);
 
-public:
   Db    *find_db(const char *dbname) const;
   Table *find_table(const char *dbname, const char *table_name) const;
 
   RC sync();
 
 private:
-  filesystem::path  base_dir_;          ///< 存储引擎的根目录
-  filesystem::path  db_dir_;            ///< 数据库文件的根目录
-  string            trx_kit_name_;      ///< 事务模型的名称
-  string            log_handler_name_;  ///< 日志处理器的名称
-  map<string, Db *> opened_dbs_;        ///< 打开的数据库
+  std::filesystem::path base_dir_;          ///< 存储引擎的根目录
+  std::filesystem::path db_dir_;            ///< 数据库文件的根目录
+  string                trx_kit_name_;      ///< 事务模型的名称
+  string                log_handler_name_;  ///< 日志处理器的名称
+  map<string, Db *>     opened_dbs_;        ///< 打开的数据库
 };

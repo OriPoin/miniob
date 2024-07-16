@@ -14,15 +14,13 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/project_physical_operator.h"
 #include "common/log/log.h"
-#include "storage/record/record.h"
 #include "storage/table/table.h"
 
 using namespace std;
 
 ProjectPhysicalOperator::ProjectPhysicalOperator(vector<unique_ptr<Expression>> &&expressions)
-  : expressions_(std::move(expressions)), tuple_(expressions_)
-{
-}
+    : expressions_(std::move(expressions)), tuple_(expressions_)
+{}
 
 RC ProjectPhysicalOperator::open(Trx *trx)
 {

@@ -30,12 +30,11 @@ public:
   DeleteStmt(Table *table, FilterStmt *filter_stmt);
   ~DeleteStmt() override;
 
-  Table      *table() const { return table_; }
-  FilterStmt *filter_stmt() const { return filter_stmt_; }
+  [[nodiscard]] Table      *table() const { return table_; }
+  [[nodiscard]] FilterStmt *filter_stmt() const { return filter_stmt_; }
 
-  StmtType type() const override { return StmtType::DELETE; }
+  [[nodiscard]] StmtType type() const override { return StmtType::DELETE; }
 
-public:
   static RC create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt);
 
 private:

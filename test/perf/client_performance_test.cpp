@@ -13,18 +13,17 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <arpa/inet.h>
-#include <errno.h>
+#include <iostream>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "common/defs.h"
 #include "common/metrics/console_reporter.h"
 #include "common/metrics/metrics.h"
 #include "common/metrics/metrics_registry.h"
@@ -34,12 +33,12 @@ See the Mulan PSL v2 for more details. */
 
 using namespace common;
 
-char *server_host = (char *)"localhost";
-int   server_port = PORT_DEFAULT;
+const char *server_host = reinterpret_cast<const char *>("localhost");
+int         server_port = PORT_DEFAULT;
 
 void *test_server(void *param)
 {
-  Meter *tps_meter = (Meter *)param;
+  auto *tps_meter = static_cast<Meter *>(param);
 
   std::cout << "Begin to connect server. " << std::endl;
   int sockfd, sendbytes;
@@ -51,28 +50,30 @@ void *test_server(void *param)
   // char buf[MAXDATASIZE];
   struct hostent    *host;
   struct sockaddr_in serv_addr;
-
-  if ((host = gethostbyname(server_host)) == NULL) {
+  host = gethostbyname(server_host);
+  if (host == nullptr) {
     perror("gethostbyname");
     exit(1);
   }
-  if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sockfd == -1) {
     perror("socket error \n");
     exit(1);
   }
 
   serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port   = htons((uint16_t)server_port);
-  serv_addr.sin_addr   = *((struct in_addr *)host->h_addr);
+  serv_addr.sin_port   = htons(static_cast<uint16_t>(server_port));
+  serv_addr.sin_addr   = *(reinterpret_cast<struct in_addr *>(host->h_addr));
   bzero(&(serv_addr.sin_zero), 8);
 
-  if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr)) == -1) {
+  if (connect(sockfd, reinterpret_cast<struct sockaddr *>(&serv_addr), sizeof(struct sockaddr)) == -1) {
     perror("Failed to connect \n");
     exit(1);
   }
 
   while (true) {
-    if ((sendbytes = send(sockfd, send_buf, strlen(send_buf) + 1, 0)) == -1) {
+    sendbytes = send(sockfd, send_buf, strlen(send_buf) + 1, 0);
+    if (sendbytes == -1) {
       perror("send error \n");
       exit(1);
     }
@@ -92,7 +93,7 @@ void *test_server(void *param)
     tps_meter->inc();
   }
   close(sockfd);
-  return NULL;
+  return nullptr;
 }
 
 int main(int argc, char *argv[])
@@ -110,16 +111,16 @@ int main(int argc, char *argv[])
   ConsoleReporter *console_reporter = get_console_reporter();
   metric_registry.add_reporter(console_reporter);
 
-  Meter *tps_meter = new Meter();
+  auto *tps_meter = new Meter();
 
   metric_registry.register_metric("client.sendtps", tps_meter);
 
   for (int i = 0; i < 8; i++) {
     pthread_t pid;
-    pthread_create(&pid, NULL, test_server, tps_meter);
+    pthread_create(&pid, nullptr, test_server, tps_meter);
   }
 
-  while (1) {
+  while (true) {
     sleep(60);
     metric_registry.snapshot();
     metric_registry.report();

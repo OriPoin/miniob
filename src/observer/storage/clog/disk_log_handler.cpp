@@ -16,7 +16,6 @@ See the Mulan PSL v2 for more details. */
 #include "storage/clog/disk_log_handler.h"
 #include "storage/clog/log_file.h"
 #include "storage/clog/log_replayer.h"
-#include "common/lang/chrono.h"
 
 using namespace common;
 
@@ -75,7 +74,7 @@ RC DiskLogHandler::await_termination()
 
 RC DiskLogHandler::replay(LogReplayer &replayer, LSN start_lsn)
 {
-  LSN max_lsn = 0;
+  LSN  max_lsn         = 0;
   auto replay_callback = [&replayer, &max_lsn](LogEntry &entry) -> RC {
     if (entry.lsn() > max_lsn) {
       max_lsn = entry.lsn();
@@ -99,10 +98,10 @@ RC DiskLogHandler::replay(LogReplayer &replayer, LSN start_lsn)
   return rc;
 }
 
-RC DiskLogHandler::iterate(function<RC(LogEntry&)> consumer, LSN start_lsn)
+RC DiskLogHandler::iterate(function<RC(LogEntry &)> consumer, LSN start_lsn)
 {
   vector<string> log_files;
-  RC rc = file_manager_.list_files(log_files, start_lsn);
+  RC             rc = file_manager_.list_files(log_files, start_lsn);
   if (OB_FAIL(rc)) {
     LOG_WARN("failed to list clog files. rc=%s", strrc(rc));
     return rc;
@@ -151,14 +150,13 @@ RC DiskLogHandler::wait_lsn(LSN lsn)
 {
   // 直接强制等待。在生产系统中，我们可能会使用条件变量来等待。
   while (running_.load() && current_flushed_lsn() < lsn) {
-    this_thread::sleep_for(chrono::milliseconds(100));
+    this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 
   if (current_flushed_lsn() >= lsn) {
     return RC::SUCCESS;
-  } else {
-    return RC::INTERNAL;
   }
+  return RC::INTERNAL;
 }
 
 void DiskLogHandler::thread_func()
@@ -172,7 +170,7 @@ void DiskLogHandler::thread_func()
   LOG_INFO("log handler thread started");
 
   LogFileWriter file_writer;
-  
+
   RC rc = RC::SUCCESS;
   while (running_.load() || entry_buffer_.entry_number() > 0) {
     if (!file_writer.valid() || rc == RC::LOG_FILE_FULL) {
@@ -186,20 +184,20 @@ void DiskLogHandler::thread_func()
         LOG_WARN("failed to open log file. rc=%s", strrc(rc));
         // 总是使用最简单的方法等待一段时间，期望错误会被修复。
         // 这在生产系统中是不被允许的。
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(std::chrono::milliseconds(100));
         continue;
       }
       LOG_INFO("open log file success. file=%s", file_writer.to_string().c_str());
     }
 
     int flush_count = 0;
-    rc = entry_buffer_.flush(file_writer, flush_count);
+    rc              = entry_buffer_.flush(file_writer, flush_count);
     if (OB_FAIL(rc) && RC::LOG_FILE_FULL != rc) {
       LOG_WARN("failed to flush log entry buffer. rc=%s", strrc(rc));
     }
 
     if (flush_count == 0 && rc == RC::SUCCESS) {
-      this_thread::sleep_for(chrono::milliseconds(100));
+      this_thread::sleep_for(std::chrono::milliseconds(100));
       continue;
     }
   }

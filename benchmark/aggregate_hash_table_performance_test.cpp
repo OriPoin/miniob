@@ -23,8 +23,8 @@ public:
     unique_ptr<Column> column2 = make_unique<Column>(AttrType::INTS, 4);
     for (int i = 0; i < state.range(0); i++) {
       int key = i % 8;
-      column1->append_one((char *)&key);
-      column2->append_one((char *)&i);
+      column1->append_one(reinterpret_cast<char *>(&key));
+      column2->append_one(reinterpret_cast<char *>(&i));
     }
     group_chunk_.add_column(std::move(column1), 0);
     aggr_chunk_.add_column(std::move(column2), 0);

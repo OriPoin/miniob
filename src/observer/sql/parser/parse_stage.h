@@ -25,5 +25,5 @@ class SQLStageEvent;
 class ParseStage
 {
 public:
-  RC handle_request(SQLStageEvent *sql_event);
+  static RC handle_request(SQLStageEvent *sql_event);
 };

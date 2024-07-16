@@ -34,7 +34,7 @@ int writePidFile(const char *progName);
  * Removes the PID file for the current component
  *
  */
-void removePidFile(void);
+void removePidFile();
 
 string &getPidPath();
 

@@ -33,7 +33,7 @@ public:
   void add_debug_info(const string &debug_info);
   void clear_debug_info();
 
-  const list<string> &get_debug_infos() const;
+  [[nodiscard]] const list<string> &get_debug_infos() const;
 
 private:
   list<string> debug_infos_;

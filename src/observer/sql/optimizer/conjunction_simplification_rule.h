@@ -26,8 +26,8 @@ class LogicalOperator;
 class ConjunctionSimplificationRule : public ExpressionRewriteRule
 {
 public:
-  ConjunctionSimplificationRule()          = default;
-  virtual ~ConjunctionSimplificationRule() = default;
+  ConjunctionSimplificationRule()           = default;
+  ~ConjunctionSimplificationRule() override = default;
 
   RC rewrite(std::unique_ptr<Expression> &expr, bool &change_made) override;
 

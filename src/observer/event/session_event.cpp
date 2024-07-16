@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 
 SessionEvent::SessionEvent(Communicator *comm) : communicator_(comm), sql_result_(communicator_->session()) {}
 
-SessionEvent::~SessionEvent() {}
+SessionEvent::~SessionEvent() = default;
 
 Communicator *SessionEvent::get_communicator() const { return communicator_; }
 

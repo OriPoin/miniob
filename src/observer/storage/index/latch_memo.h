@@ -14,10 +14,10 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include "common/lang/vector.h"
 #include "common/rc.h"
 #include "common/lang/deque.h"
-#include "common/lang/vector.h"
-#include "storage/buffer/page.h"
+#include "common/types.h"
 
 class Frame;
 class DiskBufferPool;
@@ -54,7 +54,7 @@ public:
   /**
    * @brief 当前遇到的场景都是针对单个BufferPool的，不过从概念上讲，不一定做这个限制
    */
-  LatchMemo(DiskBufferPool *buffer_pool);
+  explicit LatchMemo(DiskBufferPool *buffer_pool);
   ~LatchMemo();
 
   RC get_page(PageNum page_num, Frame *&frame);
@@ -78,12 +78,11 @@ public:
 
   void release_to(int point);
 
-  int memo_point() const { return static_cast<int>(items_.size()); }
+  [[nodiscard]] int memo_point() const { return static_cast<int>(items_.size()); }
 
 private:
   void release_item(LatchMemoItem &item);
 
-private:
   DiskBufferPool      *buffer_pool_ = nullptr;
   deque<LatchMemoItem> items_;
   vector<PageNum>      disposed_pages_;  /// 等待释放的页面

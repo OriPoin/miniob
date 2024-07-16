@@ -10,7 +10,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/project_vec_physical_operator.h"
 #include "common/log/log.h"
-#include "storage/record/record.h"
 #include "storage/table/table.h"
 
 using namespace std;
@@ -47,7 +46,8 @@ RC ProjectVecPhysicalOperator::next(Chunk &chunk)
   RC rc = children_[0]->next(chunk_);
   if (rc == RC::RECORD_EOF) {
     return rc;
-  } else if (rc == RC::SUCCESS) {
+  }
+  if (rc == RC::SUCCESS) {
     rc = chunk.reference(chunk_);
   } else {
     LOG_WARN("failed to get next tuple: %s", strrc(rc));

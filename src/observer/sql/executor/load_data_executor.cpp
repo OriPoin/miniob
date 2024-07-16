@@ -18,16 +18,16 @@ See the Mulan PSL v2 for more details. */
 #include "event/sql_event.h"
 #include "sql/executor/sql_result.h"
 #include "sql/stmt/load_data_stmt.h"
-
+#include <sys/types.h>
 using namespace common;
 
 RC LoadDataExecutor::execute(SQLStageEvent *sql_event)
 {
-  RC            rc         = RC::SUCCESS;
-  SqlResult    *sql_result = sql_event->session_event()->sql_result();
-  LoadDataStmt *stmt       = static_cast<LoadDataStmt *>(sql_event->stmt());
-  Table        *table      = stmt->table();
-  const char   *file_name  = stmt->filename();
+  RC          rc         = RC::SUCCESS;
+  SqlResult  *sql_result = sql_event->session_event()->sql_result();
+  auto       *stmt       = static_cast<LoadDataStmt *>(sql_event->stmt());
+  Table      *table      = stmt->table();
+  const char *file_name  = stmt->filename();
   load_data(table, file_name, sql_result);
   return rc;
 }
@@ -104,11 +104,10 @@ RC insert_record_from_file(
 
   if (RC::SUCCESS == rc) {
     Record record;
-    rc = table->make_record(field_num, record_values.data(), record);
-    if (rc != RC::SUCCESS) {
+    if (table->make_record(field_num, record_values.data(), record) != RC::SUCCESS ||
+        table->insert_record(record) != RC::SUCCESS) {
       errmsg << "insert failed.";
-    } else if (RC::SUCCESS != (rc = table->insert_record(record))) {
-      errmsg << "insert failed.";
+      return rc;
     }
   }
   return rc;
@@ -161,7 +160,7 @@ void LoadDataExecutor::load_data(Table *table, const char *file_name, SqlResult 
 
   struct timespec end_time;
   clock_gettime(CLOCK_MONOTONIC, &end_time);
-  long cost_nano = (end_time.tv_sec - begin_time.tv_sec) * 1000000000L + (end_time.tv_nsec - begin_time.tv_nsec);
+  u_int64_t cost_nano = (end_time.tv_sec - begin_time.tv_sec) * 1000000000L + (end_time.tv_nsec - begin_time.tv_nsec);
   if (RC::SUCCESS == rc) {
     result_string << strrc(rc) << ". total " << line_num << " line(s) handled and " << insertion_count
                   << " record(s) loaded, total cost " << cost_nano / 1000000000.0 << " second(s)" << std::endl;

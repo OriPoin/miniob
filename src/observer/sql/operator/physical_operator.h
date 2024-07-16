@@ -71,19 +71,19 @@ public:
   /**
    * 这两个函数是为了打印时使用的，比如在explain中
    */
-  virtual std::string name() const;
-  virtual std::string param() const;
+  [[nodiscard]] virtual std::string name() const;
+  [[nodiscard]] virtual std::string param() const;
 
-  virtual PhysicalOperatorType type() const = 0;
+  [[nodiscard]] virtual PhysicalOperatorType type() const = 0;
 
   virtual RC open(Trx *trx) = 0;
   virtual RC next() { return RC::UNIMPLENMENT; }
-  virtual RC next(Chunk &chunk) { return RC::UNIMPLENMENT; }
+  virtual RC next(Chunk & /*chunk*/) { return RC::UNIMPLENMENT; }
   virtual RC close() = 0;
 
   virtual Tuple *current_tuple() { return nullptr; }
 
-  virtual RC tuple_schema(TupleSchema &schema) const { return RC::UNIMPLENMENT; }
+  virtual RC tuple_schema(TupleSchema & /*schema*/) const { return RC::UNIMPLENMENT; }
 
   void add_child(std::unique_ptr<PhysicalOperator> oper) { children_.emplace_back(std::move(oper)); }
 

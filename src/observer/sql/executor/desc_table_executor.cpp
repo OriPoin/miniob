@@ -12,8 +12,6 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2023/6/14.
 //
 
-#include <memory>
-
 #include "sql/executor/desc_table_executor.h"
 
 #include "common/log/log.h"
@@ -37,9 +35,9 @@ RC DescTableExecutor::execute(SQLStageEvent *sql_event)
       "desc table executor can not run this command: %d",
       static_cast<int>(stmt->type()));
 
-  DescTableStmt *desc_table_stmt = static_cast<DescTableStmt *>(stmt);
-  SqlResult     *sql_result      = session_event->sql_result();
-  const char    *table_name      = desc_table_stmt->table_name().c_str();
+  auto       *desc_table_stmt = static_cast<DescTableStmt *>(stmt);
+  SqlResult  *sql_result      = session_event->sql_result();
+  const char *table_name      = desc_table_stmt->table_name().c_str();
 
   Db    *db    = session->get_current_db();
   Table *table = db->find_table(table_name);
@@ -51,7 +49,7 @@ RC DescTableExecutor::execute(SQLStageEvent *sql_event)
 
     sql_result->set_tuple_schema(tuple_schema);
 
-    auto             oper       = new StringListPhysicalOperator;
+    auto            *oper       = new StringListPhysicalOperator;
     const TableMeta &table_meta = table->table_meta();
     for (int i = table_meta.sys_field_num(); i < table_meta.field_num(); i++) {
       const FieldMeta *field_meta = table_meta.field(i);

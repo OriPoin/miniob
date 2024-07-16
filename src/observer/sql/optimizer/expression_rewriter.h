@@ -25,13 +25,12 @@ class ExpressionRewriter : public RewriteRule
 {
 public:
   ExpressionRewriter();
-  virtual ~ExpressionRewriter() = default;
+  ~ExpressionRewriter() override = default;
 
   RC rewrite(std::unique_ptr<LogicalOperator> &oper, bool &change_made) override;
 
 private:
   RC rewrite_expression(std::unique_ptr<Expression> &expr, bool &change_made);
 
-private:
   std::vector<std::unique_ptr<ExpressionRewriteRule>> expr_rewrite_rules_;
 };

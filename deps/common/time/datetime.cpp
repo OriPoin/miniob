@@ -15,8 +15,9 @@ See the Mulan PSL v2 for more details. */
 #include "common/time/datetime.h"
 
 #include <pthread.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
+#include <utility>
 
 #include "common/lang/iomanip.h"
 #include "common/lang/sstream.h"
@@ -65,8 +66,8 @@ string DateTime::time_t_to_xml_str(time_t timet)
 {
   string        ret_val;
   ostringstream oss;
-  struct tm          tmbuf;
-  tm                *tm_info = gmtime_r(&timet, &tmbuf);
+  struct tm     tmbuf;
+  tm           *tm_info = gmtime_r(&timet, &tmbuf);
   oss << tm_info->tm_year + 1900 << "-";
   if ((tm_info->tm_mon + 1) <= 9)
     oss << "0";
@@ -89,7 +90,7 @@ string DateTime::time_t_to_xml_str(time_t timet)
 
 string DateTime::str_to_time_t_str(string &xml_str)
 {
-  tm                 tmp;
+  tm            tmp;
   ostringstream oss;
   sscanf(xml_str.c_str(),
       "%04d-%02d-%02dT%02d:%02d:%02dZ",
@@ -109,7 +110,7 @@ string DateTime::str_to_time_t_str(string &xml_str)
 time_t DateTime::nowtimet()
 {
   struct timeval tv;
-  gettimeofday(&tv, 0);
+  gettimeofday(&tv, nullptr);
   return tv.tv_sec;
   ;
 }
@@ -117,16 +118,16 @@ time_t DateTime::nowtimet()
 DateTime DateTime::now()
 {
   struct timeval tv;
-  gettimeofday(&tv, 0);
+  gettimeofday(&tv, nullptr);
   return from_time_t(tv.tv_sec, tv.tv_usec / 1000);
 }
 
 //! Return date and time as a string in Xml Schema date-time format
-string DateTime::to_xml_date_time()
+string DateTime::to_xml_date_time() const
 {
 
   string        ret_val;
-  tm                 tm_info;
+  tm            tm_info;
   ostringstream oss;
 
   tm_info = to_tm();
@@ -152,7 +153,7 @@ string DateTime::to_xml_date_time()
 
 time_t DateTime::add_duration(string xml_duration)
 {
-  add_duration_date_time(xml_duration);
+  add_duration_date_time(std::move(xml_duration));
   return to_time_t();
 }
 
@@ -169,7 +170,7 @@ void DateTime::add_duration_date_time(string xml_duration)
 
   // duration values
   struct tm dur_t;
-  parse_duration(xml_duration, dur_t);
+  parse_duration(std::move(xml_duration), dur_t);
 
   // end values
   int e_year, e_month, e_day, e_hour, e_min, e_sec, e_millis = 0;
@@ -227,7 +228,6 @@ void DateTime::add_duration_date_time(string xml_duration)
   }
   m_date = julian_date(e_year, e_month, e_day);
   m_time = make_hms(e_hour, e_min, e_sec, e_millis);
-  return;
 }
 
 int DateTime::max_day_in_month_for(int yr, int month)
@@ -238,16 +238,13 @@ int DateTime::max_day_in_month_for(int yr, int month)
   if (tmp_month == MON_JAN || tmp_month == MON_MAR || tmp_month == MON_MAY || tmp_month == MON_JUL ||
       tmp_month == MON_AUG || tmp_month == MON_OCT || tmp_month == MON_DEC) {
     return 31;
-  } else {
-    if (tmp_month == MON_APR || tmp_month == MON_JUN || tmp_month == MON_SEP || tmp_month == MON_NOV)
-      return 30;
-    else {
-      if (tmp_month == MON_FEB && ((0 == tmp_year % 400) || ((0 != tmp_year % 100) && 0 == tmp_year % 4))) {
-        return 29;
-      } else
-        return 28;
-    }
   }
+  if (tmp_month == MON_APR || tmp_month == MON_JUN || tmp_month == MON_SEP || tmp_month == MON_NOV)
+    return 30;
+  if (tmp_month == MON_FEB && ((0 == tmp_year % 400) || ((0 != tmp_year % 100) && 0 == tmp_year % 4))) {
+    return 29;
+  }
+  return 28;
 }
 
 void DateTime::parse_duration(string dur_str, struct tm &tm_t)
@@ -337,7 +334,6 @@ void DateTime::parse_duration(string dur_str, struct tm &tm_t)
     sscanf(dur_str.substr(index, ind_s).c_str(), "%d", &tm_t.tm_sec);
     tm_t.tm_sec *= sign;
   }
-  return;
 }
 
 // generate OBJ_ID_TIMESTMP_DIGITS types unique timestamp string
@@ -353,8 +349,8 @@ string Now::unique()
 #elif defined(__MACH__)
   static pthread_mutex_t mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER;
 #endif
-  gettimeofday(&tv, NULL);
-  temp = (((uint64_t)tv.tv_sec) << 20) + tv.tv_usec;
+  gettimeofday(&tv, nullptr);
+  temp = ((static_cast<uint64_t>(tv.tv_sec)) << 20) + tv.tv_usec;
   pthread_mutex_lock(&mutex);
   if (temp > last_unique) {
     // record last timeStamp

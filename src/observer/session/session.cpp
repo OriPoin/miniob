@@ -38,8 +38,7 @@ const char *Session::get_current_db_name() const
 {
   if (db_ != nullptr)
     return db_->name();
-  else
-    return "";
+  return "";
 }
 
 Db *Session::get_current_db() const { return db_; }

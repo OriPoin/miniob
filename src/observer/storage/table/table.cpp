@@ -12,13 +12,13 @@ See the Mulan PSL v2 for more details. */
 // Created by Meiyi & Wangyunlai on 2021/5/13.
 //
 
-#include <limits.h>
-#include <string.h>
+#include <climits>
+#include <cstring>
+#include <utility>
 
 #include "common/defs.h"
 #include "common/lang/string.h"
 #include "common/lang/span.h"
-#include "common/lang/algorithm.h"
 #include "common/log/log.h"
 #include "common/global_context.h"
 #include "storage/db/db.h"
@@ -43,8 +43,7 @@ Table::~Table()
     data_buffer_pool_ = nullptr;
   }
 
-  for (vector<Index *>::iterator it = indexes_.begin(); it != indexes_.end(); ++it) {
-    Index *index = *it;
+  for (auto *index : indexes_) {
     delete index;
   }
   indexes_.clear();
@@ -89,7 +88,8 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
 
   // 创建文件
   const vector<FieldMeta> *trx_fields = db->trx_kit().trx_fields();
-  if ((rc = table_meta_.init(table_id, name, trx_fields, attributes, storage_format)) != RC::SUCCESS) {
+  rc                                  = table_meta_.init(table_id, name, trx_fields, attributes, storage_format);
+  if (rc != RC::SUCCESS) {
     LOG_ERROR("Failed to init table meta. name:%s, ret:%d", name, rc);
     return rc;  // delete table file
   }
@@ -167,8 +167,8 @@ RC Table::open(Db *db, const char *meta_file, const char *base_dir)
       return RC::INTERNAL;
     }
 
-    BplusTreeIndex *index      = new BplusTreeIndex();
-    string          index_file = table_index_file(base_dir, name(), index_meta->name());
+    auto  *index      = new BplusTreeIndex();
+    string index_file = table_index_file(base_dir, name(), index_meta->name());
 
     rc = index->open(this, index_file.c_str(), *index_meta, *field_meta);
     if (rc != RC::SUCCESS) {
@@ -212,7 +212,7 @@ RC Table::insert_record(Record &record)
 
 RC Table::visit_record(const RID &rid, function<bool(Record &)> visitor)
 {
-  return record_handler_->visit_record(rid, visitor);
+  return record_handler_->visit_record(rid, std::move(visitor));
 }
 
 RC Table::get_record(const RID &rid, Record &record)
@@ -276,7 +276,7 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
 
   // 复制所有字段的值
   int   record_size = table_meta_.record_size();
-  char *record_data = (char *)malloc(record_size);
+  char *record_data = static_cast<char *>(malloc(record_size));
 
   for (int i = 0; i < value_num; i++) {
     const FieldMeta *field    = table_meta_.field(i + normal_field_start_index);
@@ -330,7 +330,7 @@ RC Table::get_record_scanner(RecordFileScanner &scanner, Trx *trx, ReadWriteMode
   return rc;
 }
 
-RC Table::get_chunk_scanner(ChunkFileScanner &scanner, Trx *trx, ReadWriteMode mode)
+RC Table::get_chunk_scanner(ChunkFileScanner &scanner, Trx * /*trx*/, ReadWriteMode mode)
 {
   RC rc = scanner.open_scan_chunk(this, *data_buffer_pool_, db_->log_handler(), mode);
   if (rc != RC::SUCCESS) {
@@ -356,8 +356,8 @@ RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_
   }
 
   // 创建索引相关数据
-  BplusTreeIndex *index      = new BplusTreeIndex();
-  string          index_file = table_index_file(base_dir_.c_str(), name(), index_name);
+  auto  *index      = new BplusTreeIndex();
+  string index_file = table_index_file(base_dir_.c_str(), name(), index_name);
 
   rc = index->create(this, index_file.c_str(), new_index_meta, *field_meta);
   if (rc != RC::SUCCESS) {

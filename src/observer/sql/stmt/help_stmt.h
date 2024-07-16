@@ -14,9 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "sql/stmt/stmt.h"
 
 /**
@@ -26,10 +23,10 @@ See the Mulan PSL v2 for more details. */
 class HelpStmt : public Stmt
 {
 public:
-  HelpStmt() {}
-  virtual ~HelpStmt() = default;
+  HelpStmt()           = default;
+  ~HelpStmt() override = default;
 
-  StmtType type() const override { return StmtType::HELP; }
+  [[nodiscard]] StmtType type() const override { return StmtType::HELP; }
 
   static RC create(Stmt *&stmt)
   {

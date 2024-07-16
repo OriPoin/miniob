@@ -28,7 +28,7 @@ public:
 
   Table *find_table(const char *table_name) const;
 
-  const std::vector<Table *> &query_tables() const { return query_tables_; }
+  [[nodiscard]] const std::vector<Table *> &query_tables() const { return query_tables_; }
 
 private:
   std::vector<Table *> query_tables_;
@@ -41,7 +41,7 @@ private:
 class ExpressionBinder
 {
 public:
-  ExpressionBinder(BinderContext &context) : context_(context) {}
+  explicit ExpressionBinder(BinderContext &context) : context_(context) {}
   virtual ~ExpressionBinder() = default;
 
   RC bind_expression(std::unique_ptr<Expression> &expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
@@ -51,9 +51,9 @@ private:
       std::unique_ptr<Expression> &star_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
   RC bind_unbound_field_expression(
       std::unique_ptr<Expression> &unbound_field_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
-  RC bind_field_expression(
+  static RC bind_field_expression(
       std::unique_ptr<Expression> &field_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
-  RC bind_value_expression(
+  static RC bind_value_expression(
       std::unique_ptr<Expression> &value_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
   RC bind_cast_expression(
       std::unique_ptr<Expression> &cast_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
@@ -66,6 +66,5 @@ private:
   RC bind_aggregate_expression(
       std::unique_ptr<Expression> &aggregate_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
 
-private:
   BinderContext &context_;
 };

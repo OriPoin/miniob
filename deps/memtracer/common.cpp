@@ -9,7 +9,6 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 #include <cstdarg>
-#include <sstream>
 #include "memtracer/common.h"
 
 namespace memtracer {

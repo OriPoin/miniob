@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "storage/field/field_meta.h"
 #include "storage/table/table_meta.h"
-#include "json/json.h"
+#include <json/value.h>
 
 const static Json::StaticString FIELD_NAME("name");
 const static Json::StaticString FIELD_FIELD_NAME("field_name");

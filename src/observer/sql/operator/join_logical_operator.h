@@ -24,10 +24,10 @@ See the Mulan PSL v2 for more details. */
 class JoinLogicalOperator : public LogicalOperator
 {
 public:
-  JoinLogicalOperator()          = default;
-  virtual ~JoinLogicalOperator() = default;
+  JoinLogicalOperator()           = default;
+  ~JoinLogicalOperator() override = default;
 
-  LogicalOperatorType type() const override { return LogicalOperatorType::JOIN; }
+  [[nodiscard]] LogicalOperatorType type() const override { return LogicalOperatorType::JOIN; }
 
 private:
 };

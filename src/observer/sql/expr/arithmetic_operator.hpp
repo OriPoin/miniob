@@ -10,11 +10,13 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include <cstdint>
+#include <vector>
 #if defined(USE_SIMD)
 #include "common/math/simd_util.h"
 #endif
 
-#include "storage/common/column.h"
+#include "sql/parser/parse_defs.h"
 
 struct Equal
 {
@@ -208,7 +210,7 @@ template <typename T, bool LEFT_CONSTANT, bool RIGHT_CONSTANT, class OP>
 void compare_operation(T *left, T *right, int n, std::vector<uint8_t> &result)
 {
 #if defined(USE_SIMD)
-  int           i          = 0;
+  int i = 0;
   if constexpr (std::is_same<T, float>::value) {
     for (; i <= n - SIMD_WIDTH; i += SIMD_WIDTH) {
       __m256 left_value, right_value;

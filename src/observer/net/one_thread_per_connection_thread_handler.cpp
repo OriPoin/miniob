@@ -18,7 +18,6 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "common/lang/thread.h"
 #include "common/lang/mutex.h"
-#include "common/lang/chrono.h"
 #include "common/thread/thread_util.h"
 #include "net/communicator.h"
 #include "net/sql_task_handler.h"
@@ -28,9 +27,7 @@ using namespace common;
 class Worker
 {
 public:
-  Worker(ThreadHandler &host, Communicator *communicator) 
-    : host_(host), communicator_(communicator)
-  {}
+  Worker(ThreadHandler &host, Communicator *communicator) : host_(host), communicator_(communicator) {}
   ~Worker()
   {
     if (thread_ != nullptr) {
@@ -55,7 +52,7 @@ public:
   {
     if (thread_) {
       if (thread_->get_id() == this_thread::get_id()) {
-        thread_->detach(); // 如果当前线程join当前线程，就会卡死
+        thread_->detach();  // 如果当前线程join当前线程，就会卡死
       } else {
         thread_->join();
       }
@@ -74,8 +71,8 @@ public:
     }
 
     struct pollfd poll_fd;
-    poll_fd.fd = communicator_->fd();
-    poll_fd.events = POLLIN;
+    poll_fd.fd      = communicator_->fd();
+    poll_fd.events  = POLLIN;
     poll_fd.revents = 0;
 
     while (running_) {
@@ -83,7 +80,8 @@ public:
       if (ret < 0) {
         LOG_WARN("poll error. fd = %d, ret = %d, error=%s", poll_fd.fd, ret, strerror(errno));
         break;
-      } else if (0 == ret) {
+      }
+      if (0 == ret) {
         // LOG_TRACE("poll timeout. fd = %d", poll_fd.fd);
         continue;
       }
@@ -101,15 +99,15 @@ public:
     }
 
     LOG_INFO("worker thread stop. communicator = %p", communicator_);
-    host_.close_connection(communicator_); /// 连接关闭后，当前对象会被删除
+    host_.close_connection(communicator_);  /// 连接关闭后，当前对象会被删除
   }
 
 private:
   ThreadHandler &host_;
   SqlTaskHandler task_handler_;
-  Communicator *communicator_ = nullptr;
-  thread *thread_ = nullptr;
-  volatile bool running_ = true;
+  Communicator  *communicator_ = nullptr;
+  thread        *thread_       = nullptr;
+  volatile bool  running_      = true;
 };
 
 OneThreadPerConnectionThreadHandler::~OneThreadPerConnectionThreadHandler()
@@ -128,7 +126,7 @@ RC OneThreadPerConnectionThreadHandler::new_connection(Communicator *communicato
     return RC::FILE_EXIST;
   }
 
-  Worker *worker = new Worker(*this, communicator);
+  auto *worker              = new Worker(*this, communicator);
   thread_map_[communicator] = worker;
   return worker->start();
 }
@@ -158,8 +156,8 @@ RC OneThreadPerConnectionThreadHandler::close_connection(Communicator *communica
 RC OneThreadPerConnectionThreadHandler::stop()
 {
   lock_guard guard(lock_);
-  for (auto iter = thread_map_.begin(); iter != thread_map_.end(); ++iter) {
-    Worker *worker = iter->second;
+  for (auto &iter : thread_map_) {
+    Worker *worker = iter.second;
     worker->stop();
   }
   return RC::SUCCESS;
@@ -169,7 +167,7 @@ RC OneThreadPerConnectionThreadHandler::await_stop()
 {
   LOG_INFO("begin to await stop one thread per connection thread handler");
   while (!thread_map_.empty()) {
-    this_thread::sleep_for(chrono::milliseconds(100));
+    this_thread::sleep_for(std::chrono::milliseconds(100));
   }
   LOG_INFO("end to await stop one thread per connection thread handler");
   return RC::SUCCESS;

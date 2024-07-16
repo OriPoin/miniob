@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <string>
+#include <utility>
 
 #include "sql/stmt/stmt.h"
 
@@ -28,12 +29,12 @@ class Db;
 class DescTableStmt : public Stmt
 {
 public:
-  DescTableStmt(const std::string &table_name) : table_name_(table_name) {}
-  virtual ~DescTableStmt() = default;
+  explicit DescTableStmt(std::string table_name) : table_name_(std::move(table_name)) {}
+  ~DescTableStmt() override = default;
 
-  StmtType type() const override { return StmtType::DESC_TABLE; }
+  [[nodiscard]] StmtType type() const override { return StmtType::DESC_TABLE; }
 
-  const std::string &table_name() const { return table_name_; }
+  [[nodiscard]] const std::string &table_name() const { return table_name_; }
 
   static RC create(Db *db, const DescTableSqlNode &desc_table, Stmt *&stmt);
 

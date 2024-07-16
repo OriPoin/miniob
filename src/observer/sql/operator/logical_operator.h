@@ -53,7 +53,7 @@ public:
   LogicalOperator() = default;
   virtual ~LogicalOperator();
 
-  virtual LogicalOperatorType type() const = 0;
+  [[nodiscard]] virtual LogicalOperatorType type() const = 0;
 
   void        add_child(std::unique_ptr<LogicalOperator> oper);
   auto        children() -> std::vector<std::unique_ptr<LogicalOperator>>        &{ return children_; }

@@ -84,9 +84,8 @@ public:
   Stmt()          = default;
   virtual ~Stmt() = default;
 
-  virtual StmtType type() const = 0;
+  [[nodiscard]] virtual StmtType type() const = 0;
 
-public:
   static RC create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt);
 
 private:

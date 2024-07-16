@@ -14,9 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "sql/stmt/stmt.h"
 
 class Db;
@@ -29,12 +26,12 @@ class Db;
 class ShowTablesStmt : public Stmt
 {
 public:
-  ShowTablesStmt()          = default;
-  virtual ~ShowTablesStmt() = default;
+  ShowTablesStmt()           = default;
+  ~ShowTablesStmt() override = default;
 
-  StmtType type() const override { return StmtType::SHOW_TABLES; }
+  [[nodiscard]] StmtType type() const override { return StmtType::SHOW_TABLES; }
 
-  static RC create(Db *db, Stmt *&stmt)
+  static RC create(Db * /*db*/, Stmt *&stmt)
   {
     stmt = new ShowTablesStmt();
     return RC::SUCCESS;

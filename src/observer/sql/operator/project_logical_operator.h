@@ -19,7 +19,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/expr/expression.h"
 #include "sql/operator/logical_operator.h"
-#include "storage/field/field.h"
 
 /**
  * @brief project 表示投影运算
@@ -29,11 +28,11 @@ See the Mulan PSL v2 for more details. */
 class ProjectLogicalOperator : public LogicalOperator
 {
 public:
-  ProjectLogicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions);
-  virtual ~ProjectLogicalOperator() = default;
+  explicit ProjectLogicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions);
+  ~ProjectLogicalOperator() override = default;
 
-  LogicalOperatorType type() const override { return LogicalOperatorType::PROJECTION; }
+  [[nodiscard]] LogicalOperatorType type() const override { return LogicalOperatorType::PROJECTION; }
 
-  std::vector<std::unique_ptr<Expression>>       &expressions() { return expressions_; }
-  const std::vector<std::unique_ptr<Expression>> &expressions() const { return expressions_; }
+  std::vector<std::unique_ptr<Expression>>                     &expressions() { return expressions_; }
+  [[nodiscard]] const std::vector<std::unique_ptr<Expression>> &expressions() const { return expressions_; }
 };

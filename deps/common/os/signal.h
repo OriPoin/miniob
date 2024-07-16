@@ -14,8 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <signal.h>
-
+#include <bits/types/sigset_t.h>
 namespace common {
 
 //! Default function that blocks signals.
@@ -36,7 +35,7 @@ void  start_wait_for_signals(sigset_t *signal_set);
 /**
  * handler function
  */
-typedef void (*sighandler_t)(int);
+using sighandler_t = void (*)(int);
 void set_signal_handler(sighandler_t func);
 void set_signal_handler(int sig, sighandler_t func);
 

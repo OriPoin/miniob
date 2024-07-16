@@ -12,13 +12,11 @@ See the Mulan PSL v2 for more details. */
 // Created by Longda on 2010
 //
 
-#include <assert.h>
-#include <errno.h>
-#include <fstream>
+#include <cassert>
+#include <cerrno>
 #include <libgen.h>
 #include <paths.h>
-#include <sstream>
-#include <string.h>
+#include <cstring>
 #include <unistd.h>
 
 #include "common/log/log.h"
@@ -39,7 +37,7 @@ void setPidPath(const char *progName)
 {
   string &path = getPidPath();
 
-  if (progName != NULL) {
+  if (progName != nullptr) {
     path = string(_PATH_TMP) + progName + ".pid";
   } else {
     path = "";
@@ -50,7 +48,7 @@ int writePidFile(const char *progName)
 {
   assert(progName);
   ofstream ostr;
-  int           rv = 1;
+  int      rv = 1;
 
   setPidPath(progName);
   string path = getPidPath();
@@ -67,14 +65,13 @@ int writePidFile(const char *progName)
   return rv;
 }
 
-void removePidFile(void)
+void removePidFile()
 {
   string path = getPidPath();
   if (!path.empty()) {
     unlink(path.c_str());
-    setPidPath(NULL);
+    setPidPath(nullptr);
   }
-  return;
 }
 
 }  // namespace common

@@ -11,21 +11,14 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "storage/common/column.h"
 
-Column::Column(const FieldMeta &meta, size_t size)
-    : data_(nullptr),
-      count_(0),
-      capacity_(0),
-      own_(true),
-      attr_type_(meta.type()),
-      attr_len_(meta.len()),
-      column_type_(Type::NORMAL_COLUMN)
+Column::Column(const FieldMeta &meta, size_t capacity) : attr_type_(meta.type()), attr_len_(meta.len())
 {
-  // TODO: optimized the memory usage if it doesn't need to allocate memory
-  data_     = new char[size * attr_len_];
-  capacity_ = size;
+  // TODO(unknown): optimized the memory usage if it doesn't need to allocate memory
+  data_     = new char[capacity * attr_len_];
+  capacity_ = capacity;
 }
 
-Column::Column(AttrType attr_type, int attr_len, size_t capacity)
+Column::Column(AttrType attr_type, size_t attr_len, size_t capacity)
 {
   attr_type_   = attr_type;
   attr_len_    = attr_len;
@@ -48,7 +41,7 @@ void Column::init(const FieldMeta &meta, size_t size)
   column_type_ = Type::NORMAL_COLUMN;
 }
 
-void Column::init(AttrType attr_type, int attr_len, size_t capacity)
+void Column::init(AttrType attr_type, size_t attr_len, size_t capacity)
 {
   reset();
   data_        = new char[capacity * attr_len];
@@ -78,12 +71,12 @@ void Column::reset()
   if (data_ != nullptr && own_) {
     delete[] data_;
   }
-  data_ = nullptr;
-  count_       = 0;
-  capacity_    = 0;
-  own_         = false;
-  attr_type_   = AttrType::UNDEFINED;
-  attr_len_    = -1;
+  data_      = nullptr;
+  count_     = 0;
+  capacity_  = 0;
+  own_       = false;
+  attr_type_ = AttrType::UNDEFINED;
+  attr_len_  = -1;
 }
 
 RC Column::append_one(char *data) { return append(data, 1); }

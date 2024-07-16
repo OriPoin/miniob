@@ -25,14 +25,14 @@ See the Mulan PSL v2 for more details. */
 class CliCommunicator : public PlainCommunicator
 {
 public:
-  CliCommunicator()          = default;
-  virtual ~CliCommunicator() = default;
+  CliCommunicator()           = default;
+  ~CliCommunicator() override = default;
 
   RC init(int fd, unique_ptr<Session> session, const string &addr) override;
   RC read_event(SessionEvent *&event) override;
   RC write_result(SessionEvent *event, bool &need_disconnect) override;
 
-  bool exit() const { return exit_; }
+  [[nodiscard]] bool exit() const { return exit_; }
 
 private:
   bool exit_ = false;  ///< 是否需要退出

@@ -8,8 +8,6 @@ EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
-#include <type_traits>
-
 #include "sql/expr/aggregate_state.h"
 
 #ifdef USE_SIMD
@@ -26,7 +24,7 @@ void SumState<T>::update(const T *values, int size)
   }
 #else
   for (int i = 0; i < size; ++i) {
- 	  value += values[i];
+    value += values[i];
   }
 #endif
 }

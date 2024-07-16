@@ -12,14 +12,8 @@ See the Mulan PSL v2 for more details. */
 // Created by Longda on 2021/4/13.
 //
 
-#include <string.h>
-#include <string>
-
 #include "optimize_stage.h"
 
-#include "common/conf/ini.h"
-#include "common/io/io.h"
-#include "common/lang/string.h"
 #include "common/log/log.h"
 #include "event/session_event.h"
 #include "event/sql_event.h"
@@ -67,7 +61,7 @@ RC OptimizeStage::handle_request(SQLStageEvent *sql_event)
   return rc;
 }
 
-RC OptimizeStage::optimize(unique_ptr<LogicalOperator> &oper)
+RC OptimizeStage::optimize(unique_ptr<LogicalOperator> & /*logical_operator*/)
 {
   // do nothing
   return RC::SUCCESS;
@@ -77,14 +71,15 @@ RC OptimizeStage::generate_physical_plan(
     unique_ptr<LogicalOperator> &logical_operator, unique_ptr<PhysicalOperator> &physical_operator, Session *session)
 {
   RC rc = RC::SUCCESS;
-  if (session->get_execution_mode() == ExecutionMode::CHUNK_ITERATOR && LogicalOperator::can_generate_vectorized_operator(logical_operator->type())) {
+  if (session->get_execution_mode() == ExecutionMode::CHUNK_ITERATOR &&
+      LogicalOperator::can_generate_vectorized_operator(logical_operator->type())) {
     LOG_INFO("use chunk iterator");
     session->set_used_chunk_mode(true);
-    rc    = physical_plan_generator_.create_vec(*logical_operator, physical_operator);
+    rc = PhysicalPlanGenerator::create_vec(*logical_operator, physical_operator);
   } else {
     LOG_INFO("use tuple iterator");
     session->set_used_chunk_mode(false);
-    rc = physical_plan_generator_.create(*logical_operator, physical_operator);
+    rc = PhysicalPlanGenerator::create(*logical_operator, physical_operator);
   }
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to create physical operator. rc=%s", strrc(rc));
@@ -116,5 +111,5 @@ RC OptimizeStage::create_logical_plan(SQLStageEvent *sql_event, unique_ptr<Logic
     return RC::UNIMPLENMENT;
   }
 
-  return logical_plan_generator_.create(stmt, logical_operator);
+  return LogicalPlanGenerator::create(stmt, logical_operator);
 }

@@ -19,7 +19,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
-#include "storage/field/field.h"
 
 class FieldMeta;
 class FilterStmt;
@@ -36,14 +35,12 @@ public:
   SelectStmt() = default;
   ~SelectStmt() override;
 
-  StmtType type() const override { return StmtType::SELECT; }
+  [[nodiscard]] StmtType type() const override { return StmtType::SELECT; }
 
-public:
   static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt);
 
-public:
-  const std::vector<Table *> &tables() const { return tables_; }
-  FilterStmt                 *filter_stmt() const { return filter_stmt_; }
+  [[nodiscard]] const std::vector<Table *> &tables() const { return tables_; }
+  [[nodiscard]] FilterStmt                 *filter_stmt() const { return filter_stmt_; }
 
   std::vector<std::unique_ptr<Expression>> &query_expressions() { return query_expressions_; }
   std::vector<std::unique_ptr<Expression>> &group_by() { return group_by_; }

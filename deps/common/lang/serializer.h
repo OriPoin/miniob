@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 #include "common/lang/vector.h"
 #include "common/lang/span.h"
@@ -30,7 +30,6 @@ class Serializer final
 public:
   using BufferType = vector<char>;
 
-public:
   Serializer()  = default;
   ~Serializer() = default;
 
@@ -42,10 +41,10 @@ public:
   /// @brief 写入指定长度的数据
   int write(const char *data, int size) { return write(span<const char>(data, size)); }
   /// @brief 当前写入了多少数据
-  int64_t size() const { return buffer_.size(); }
+  [[nodiscard]] int64_t size() const { return buffer_.size(); }
 
-  BufferType       &data() { return buffer_; }
-  const BufferType &data() const { return buffer_; }
+  BufferType                     &data() { return buffer_; }
+  [[nodiscard]] const BufferType &data() const { return buffer_; }
 
   /// @brief 写入一个int32整数
   int write_int32(int32_t value);
@@ -75,10 +74,10 @@ public:
   int read(char *data, int size) { return read(span<char>(data, size)); }
 
   /// @brief buffer的大小
-  int64_t size() const { return buffer_.size(); }
+  [[nodiscard]] int64_t size() const { return buffer_.size(); }
 
   /// @brief 还剩余多少数据
-  int64_t remain() const { return buffer_.size() - position_; }
+  [[nodiscard]] int64_t remain() const { return buffer_.size() - position_; }
 
   /// @brief 读取一个int32数据
   int read_int32(int32_t &value);

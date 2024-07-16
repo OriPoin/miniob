@@ -13,7 +13,7 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <regex.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/types.h>
 
 #include "common/math/regex.h"
@@ -25,7 +25,7 @@ int regex_match(const char *str_, const char *pat_)
   if (regcomp(&reg, pat_, REG_EXTENDED | REG_NOSUB))
     return -1;
 
-  int ret = regexec(&reg, str_, 0, NULL, 0);
+  int ret = regexec(&reg, str_, 0, nullptr, 0);
   regfree(&reg);
   return ret;
 }

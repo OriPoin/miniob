@@ -63,7 +63,7 @@ private:
    *
    * @param fd 指定的描述符
    */
-  int set_non_block(int fd);
+  static int set_non_block(int fd);
 
   int start();
 

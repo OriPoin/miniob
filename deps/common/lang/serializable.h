@@ -63,7 +63,7 @@ public:
    * get serialize size
    * @return                >0 -- success, -1 --failed
    */
-  virtual int get_serial_size() const = 0;
+  [[nodiscard]] virtual int get_serial_size() const = 0;
 
   /**
    * this function will generalize one output string

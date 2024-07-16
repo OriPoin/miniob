@@ -28,13 +28,13 @@ public:
   Field(const Table *table, const FieldMeta *field) : table_(table), field_(field) {}
   Field(const Field &) = default;
 
-  const Table     *table() const { return table_; }
-  const FieldMeta *meta() const { return field_; }
+  [[nodiscard]] const Table     *table() const { return table_; }
+  [[nodiscard]] const FieldMeta *meta() const { return field_; }
 
-  AttrType attr_type() const { return field_->type(); }
+  [[nodiscard]] AttrType attr_type() const { return field_->type(); }
 
-  const char *table_name() const { return table_->name(); }
-  const char *field_name() const { return field_->name(); }
+  [[nodiscard]] const char *table_name() const { return table_->name(); }
+  [[nodiscard]] const char *field_name() const { return field_->name(); }
 
   void set_table(const Table *table) { this->table_ = table; }
   void set_field(const FieldMeta *field) { this->field_ = field; }

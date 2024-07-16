@@ -21,7 +21,7 @@ namespace common {
 class LogReporter : public Reporter
 {
 public:
-  void report(const std::string &tag, Metric *metric);
+  void report(const std::string &tag, Metric *metric) override;
 };
 
 LogReporter *get_log_reporter();

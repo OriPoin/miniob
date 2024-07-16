@@ -17,7 +17,6 @@ See the Mulan PSL v2 for more details. */
 #include "common/rc.h"
 #include "common/types.h"
 #include "common/lang/functional.h"
-#include "common/lang/memory.h"
 #include "common/lang/span.h"
 #include "common/lang/vector.h"
 #include "storage/clog/log_module.h"
@@ -94,7 +93,7 @@ public:
    */
   virtual RC wait_lsn(LSN lsn) = 0;
 
-  virtual LSN current_lsn() const = 0;
+  [[nodiscard]] virtual LSN current_lsn() const = 0;
 
   static RC create(const char *name, LogHandler *&handler);
 

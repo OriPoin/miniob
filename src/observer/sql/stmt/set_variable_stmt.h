@@ -15,7 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <string>
-#include <vector>
+#include <utility>
 
 #include "sql/stmt/stmt.h"
 
@@ -26,13 +26,13 @@ See the Mulan PSL v2 for more details. */
 class SetVariableStmt : public Stmt
 {
 public:
-  SetVariableStmt(const SetVariableSqlNode &set_variable) : set_variable_(set_variable) {}
-  virtual ~SetVariableStmt() = default;
+  explicit SetVariableStmt(SetVariableSqlNode set_variable) : set_variable_(std::move(set_variable)) {}
+  ~SetVariableStmt() override = default;
 
-  StmtType type() const override { return StmtType::SET_VARIABLE; }
+  [[nodiscard]] StmtType type() const override { return StmtType::SET_VARIABLE; }
 
-  const char  *var_name() const { return set_variable_.name.c_str(); }
-  const Value &var_value() const { return set_variable_.value; }
+  [[nodiscard]] const char  *var_name() const { return set_variable_.name.c_str(); }
+  [[nodiscard]] const Value &var_value() const { return set_variable_.value; }
 
   static RC create(const SetVariableSqlNode &set_variable, Stmt *&stmt)
   {

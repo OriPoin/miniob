@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "storage/table/table.h"
 #include "storage/db/db.h"
+#include <cstddef>
 
 BplusTreeIndex::~BplusTreeIndex() noexcept { close(); }
 
@@ -55,7 +56,7 @@ RC BplusTreeIndex::open(Table *table, const char *file_name, const IndexMeta &in
   Index::init(index_meta, field_meta);
 
   BufferPoolManager &bpm = table->db()->buffer_pool_manager();
-  RC rc = index_handler_.open(table->db()->log_handler(), bpm, file_name);
+  RC                 rc  = index_handler_.open(table->db()->log_handler(), bpm, file_name);
   if (RC::SUCCESS != rc) {
     LOG_WARN("Failed to open index_handler, file_name:%s, index:%s, field:%s, rc:%s",
         file_name, index_meta.name(), index_meta.field(), strrc(rc));
@@ -90,11 +91,11 @@ RC BplusTreeIndex::delete_entry(const char *record, const RID *rid)
   return index_handler_.delete_entry(record + field_meta_.offset(), rid);
 }
 
-IndexScanner *BplusTreeIndex::create_scanner(
-    const char *left_key, int left_len, bool left_inclusive, const char *right_key, int right_len, bool right_inclusive)
+IndexScanner *BplusTreeIndex::create_scanner(const char *left_key, size_t left_len, bool left_inclusive,
+    const char *right_key, size_t right_len, bool right_inclusive)
 {
-  BplusTreeIndexScanner *index_scanner = new BplusTreeIndexScanner(index_handler_);
-  RC rc = index_scanner->open(left_key, left_len, left_inclusive, right_key, right_len, right_inclusive);
+  auto *index_scanner = new BplusTreeIndexScanner(index_handler_);
+  RC    rc            = index_scanner->open(left_key, left_len, left_inclusive, right_key, right_len, right_inclusive);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to open index scanner. rc=%d:%s", rc, strrc(rc));
     delete index_scanner;

@@ -43,33 +43,31 @@ public:
 
   RC add_index(const IndexMeta &index);
 
-public:
-  int32_t             table_id() const { return table_id_; }
-  const char         *name() const;
-  const FieldMeta    *trx_field() const;
-  const FieldMeta    *field(int index) const;
-  const FieldMeta    *field(const char *name) const;
-  const FieldMeta    *find_field_by_offset(int offset) const;
-  auto                field_metas() const -> const std::vector<FieldMeta>                *{ return &fields_; }
-  auto                trx_fields() const -> std::span<const FieldMeta>;
-  const StorageFormat storage_format() const { return storage_format_; }
+  [[nodiscard]] int32_t          table_id() const { return table_id_; }
+  [[nodiscard]] const char      *name() const;
+  [[nodiscard]] const FieldMeta *trx_field() const;
+  [[nodiscard]] const FieldMeta *field(int index) const;
+  const FieldMeta               *field(const char *name) const;
+  [[nodiscard]] const FieldMeta *find_field_by_offset(int offset) const;
+  [[nodiscard]] auto             field_metas() const -> const std::vector<FieldMeta>             *{ return &fields_; }
+  [[nodiscard]] auto             trx_fields() const -> std::span<const FieldMeta>;
+  [[nodiscard]] StorageFormat    storage_format() const { return storage_format_; }
 
-  int field_num() const;  // sys field included
-  int sys_field_num() const;
+  [[nodiscard]] int field_num() const;  // sys field included
+  [[nodiscard]] int sys_field_num() const;
 
-  const IndexMeta *index(const char *name) const;
-  const IndexMeta *find_index_by_field(const char *field) const;
-  const IndexMeta *index(int i) const;
-  int              index_num() const;
+  const IndexMeta               *index(const char *name) const;
+  const IndexMeta               *find_index_by_field(const char *field) const;
+  [[nodiscard]] const IndexMeta *index(int i) const;
+  [[nodiscard]] int              index_num() const;
 
-  int record_size() const;
+  [[nodiscard]] int record_size() const;
 
-public:
-  int  serialize(std::ostream &os) const override;
-  int  deserialize(std::istream &is) override;
-  int  get_serial_size() const override;
-  void to_string(std::string &output) const override;
-  void desc(std::ostream &os) const;
+  int               serialize(std::ostream &os) const override;
+  int               deserialize(std::istream &is) override;
+  [[nodiscard]] int get_serial_size() const override;
+  void              to_string(std::string &output) const override;
+  void              desc(std::ostream &os) const;
 
 protected:
   int32_t                table_id_ = -1;

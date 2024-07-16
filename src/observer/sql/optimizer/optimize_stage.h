@@ -47,7 +47,7 @@ private:
    * @param sql_event   包含SQL信息的事件
    * @param logical_operator  生成的逻辑计划
    */
-  RC create_logical_plan(SQLStageEvent *sql_event, std::unique_ptr<LogicalOperator> &logical_operator);
+  static RC create_logical_plan(SQLStageEvent *sql_event, std::unique_ptr<LogicalOperator> &logical_operator);
 
   /**
    * @brief 重写逻辑计划
@@ -71,7 +71,7 @@ private:
    * 而物理计划描述怎么做，比如如何从某张表按照什么条件获取什么数据，是否使用索引，使用哪个索引等。
    * @param physical_operator 生成的物理计划。通常是一个多叉树的形状，这里就拿着根节点就可以了。
    */
-  RC generate_physical_plan(std::unique_ptr<LogicalOperator> &logical_operator,
+  static RC generate_physical_plan(std::unique_ptr<LogicalOperator> &logical_operator,
       std::unique_ptr<PhysicalOperator> &physical_operator, Session *session);
 
 private:

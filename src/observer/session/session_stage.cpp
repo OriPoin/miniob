@@ -14,10 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "session_stage.h"
 
-#include <string.h>
-
-#include "common/conf/ini.h"
-#include "common/lang/mutex.h"
 #include "common/lang/string.h"
 #include "common/log/log.h"
 #include "event/session_event.h"
@@ -29,29 +25,29 @@ See the Mulan PSL v2 for more details. */
 using namespace common;
 
 // Destructor
-SessionStage::~SessionStage() {}
+SessionStage::~SessionStage() = default;
 
-// TODO remove me
-void SessionStage::handle_request(SessionEvent *sev)
+// TODO(unknown): remove me
+void SessionStage::handle_request(SessionEvent *event)
 {
-  string sql = sev->query();
+  string sql = event->query();
   if (common::is_blank(sql.c_str())) {
     return;
   }
 
-  Session::set_current_session(sev->session());
-  sev->session()->set_current_request(sev);
-  SQLStageEvent sql_event(sev, sql);
+  Session::set_current_session(event->session());
+  event->session()->set_current_request(event);
+  SQLStageEvent sql_event(event, sql);
   (void)handle_sql(&sql_event);
 
-  Communicator *communicator    = sev->get_communicator();
+  Communicator *communicator    = event->get_communicator();
   bool          need_disconnect = false;
-  RC            rc              = communicator->write_result(sev, need_disconnect);
+  RC            rc              = communicator->write_result(event, need_disconnect);
   LOG_INFO("write result return %s", strrc(rc));
   if (need_disconnect) {
     // do nothing
   }
-  sev->session()->set_current_request(nullptr);
+  event->session()->set_current_request(nullptr);
   Session::set_current_session(nullptr);
 }
 
@@ -85,13 +81,13 @@ RC SessionStage::handle_sql(SQLStageEvent *sql_event)
     return rc;
   }
 
-  rc = parse_stage_.handle_request(sql_event);
+  rc = ParseStage::handle_request(sql_event);
   if (OB_FAIL(rc)) {
     LOG_TRACE("failed to do parse. rc=%s", strrc(rc));
     return rc;
   }
 
-  rc = resolve_stage_.handle_request(sql_event);
+  rc = ResolveStage::handle_request(sql_event);
   if (OB_FAIL(rc)) {
     LOG_TRACE("failed to do resolve. rc=%s", strrc(rc));
     return rc;
@@ -103,7 +99,7 @@ RC SessionStage::handle_sql(SQLStageEvent *sql_event)
     return rc;
   }
 
-  rc = execute_stage_.handle_request(sql_event);
+  rc = ExecuteStage::handle_request(sql_event);
   if (OB_FAIL(rc)) {
     LOG_TRACE("failed to do execute. rc=%s", strrc(rc));
     return rc;
