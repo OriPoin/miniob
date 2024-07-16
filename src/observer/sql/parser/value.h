@@ -27,6 +27,7 @@ enum class AttrType
   CHARS,     ///< 字符串类型
   INTS,      ///< 整数类型(4字节)
   FLOATS,    ///< 浮点数类型(4字节)
+  DATES,     ///< 日期类型(4字节)
   BOOLEANS,  ///< boolean类型，当前不是由parser解析出来的，是程序内部使用的
 };
 
@@ -59,11 +60,13 @@ public:
   void set_float(float val);
   void set_boolean(bool val);
   void set_string(const char *s, size_t len = 0);
+  void set_date(const char *s, size_t len = 0);
   void set_value(const Value &value);
 
   [[nodiscard]] std::string to_string() const;
 
-  [[nodiscard]] int compare(const Value &other) const;
+  [[nodiscard]] int  compare(const Value &other) const;
+  [[nodiscard]] bool valid() const;
 
   [[nodiscard]] const char *data() const;
   [[nodiscard]] size_t      length() const { return length_; }

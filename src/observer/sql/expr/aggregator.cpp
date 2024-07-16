@@ -26,6 +26,7 @@ RC SumAggregator::accumulate(const Value &value)
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
 
   switch (value.attr_type()) {
+    case AttrType::DATES:
     case AttrType::INTS: {
       value_.set_int(value.get_int() + value_.get_int());
     } break;

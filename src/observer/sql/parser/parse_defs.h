@@ -277,7 +277,8 @@ enum SqlCommandFlag
   SCF_HELP,
   SCF_EXIT,
   SCF_EXPLAIN,
-  SCF_SET_VARIABLE,  ///< 设置变量
+  SCF_SET_VARIABLE,   ///< 设置变量
+  SCF_INVALID_VALUE,  ///< 无效变量
 };
 /**
  * @brief 表示一个SQL语句
