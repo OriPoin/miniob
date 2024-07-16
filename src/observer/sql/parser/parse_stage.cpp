@@ -24,6 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "event/session_event.h"
 #include "event/sql_event.h"
 #include "sql/parser/parse.h"
+#include "sql/parser/parse_defs.h"
 
 using namespace common;
 
@@ -53,6 +54,12 @@ RC ParseStage::handle_request(SQLStageEvent *sql_event)
     rc = RC::SQL_SYNTAX;
     sql_result->set_return_code(rc);
     sql_result->set_state_string("Failed to parse sql");
+    return rc;
+  } else if (sql_node->flag == SCF_INVALID_VALUE) {
+    // return invalid argument
+    // do not set information
+    rc = RC::INVALID_ARGUMENT;
+    sql_result->set_return_code(rc);
     return rc;
   }
 

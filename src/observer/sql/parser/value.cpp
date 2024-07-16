@@ -18,15 +18,16 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include <sstream>
 
-const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "booleans"};
+const char *ATTR_TYPE_NAME[] = {"undefined", "chars", "ints", "floats", "dates", "booleans"};
 
 const char *attr_type_to_string(AttrType type)
 {
-  if (type >= AttrType::UNDEFINED && type <= AttrType::FLOATS) {
+  if (type >= AttrType::UNDEFINED && type <= AttrType::DATES) {
     return ATTR_TYPE_NAME[static_cast<int>(type)];
   }
   return "unknown";
 }
+
 AttrType attr_type_from_string(const char *s)
 {
   for (unsigned int i = 0; i < sizeof(ATTR_TYPE_NAME) / sizeof(ATTR_TYPE_NAME[0]); i++) {
@@ -63,11 +64,15 @@ void Value::set_data(char *data, int length)
       num_value_.bool_value_ = *(int *)data != 0;
       length_                = length;
     } break;
+    case AttrType::DATES: {
+      set_date(data, length);
+    } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
     } break;
   }
 }
+
 void Value::set_int(int val)
 {
   attr_type_            = AttrType::INTS;
@@ -81,12 +86,14 @@ void Value::set_float(float val)
   num_value_.float_value_ = val;
   length_                 = sizeof(val);
 }
+
 void Value::set_boolean(bool val)
 {
   attr_type_             = AttrType::BOOLEANS;
   num_value_.bool_value_ = val;
   length_                = sizeof(val);
 }
+
 void Value::set_string(const char *s, int len /*= 0*/)
 {
   attr_type_ = AttrType::CHARS;
@@ -99,10 +106,28 @@ void Value::set_string(const char *s, int len /*= 0*/)
   length_ = str_value_.length();
 }
 
+void Value::set_date(const char *s, int len /*= 0*/)
+{
+  attr_type_ = AttrType::DATES;
+  if (len == sizeof(int)) {
+    num_value_.int_value_ = *(int *)s;
+  } else {
+    int y, m, d;
+    len = strnlen(s, len);
+    str_value_.assign(s, len);
+    sscanf(s, "%d-%d-%d", &y, &m, &d);
+    num_value_.int_value_ = (y << 9) + (m << 5) + d;
+  }
+  length_ = sizeof(int);
+}
+
 void Value::set_value(const Value &value)
 {
   switch (value.attr_type_) {
     case AttrType::INTS: {
+      set_int(value.get_int());
+    } break;
+    case AttrType::DATES: {
       set_int(value.get_int());
     } break;
     case AttrType::FLOATS: {
@@ -135,7 +160,7 @@ const char *Value::data() const
 std::string Value::to_string() const
 {
   std::stringstream os;
-  switch (attr_type_) {
+  switch (; attr_type_) {
     case AttrType::INTS: {
       os << num_value_.int_value_;
     } break;
@@ -148,6 +173,14 @@ std::string Value::to_string() const
     case AttrType::CHARS: {
       os << str_value_;
     } break;
+    case AttrType::DATES: {
+      int  d = num_value_.int_value_ % 32;
+      int  m = (num_value_.int_value_ >> 5) % 16;
+      int  y = num_value_.int_value_ >> 9;
+      char s[24];
+      sprintf(s, "%04d-%02d-%02d", y, m, d);
+      os << s;
+    } break;
     default: {
       LOG_WARN("unsupported attr type: %d", attr_type_);
     } break;
@@ -159,6 +192,7 @@ int Value::compare(const Value &other) const
 {
   if (this->attr_type_ == other.attr_type_) {
     switch (this->attr_type_) {
+      case AttrType::DATES:
       case AttrType::INTS: {
         return common::compare_int((void *)&this->num_value_.int_value_, (void *)&other.num_value_.int_value_);
       } break;
@@ -189,6 +223,19 @@ int Value::compare(const Value &other) const
   return -1;  // TODO return rc?
 }
 
+bool Value::valid() const
+{
+  if (attr_type_ == AttrType::DATES) {
+    int y, m, d;
+    sscanf(str_value_.data(), "%d-%d-%d", &y, &m, &d);
+    static int mon[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    bool       leap  = (y % 400 == 0 || (y % 100 && y % 4 == 0));
+    return y > 0 && (m > 0) && (m <= 12) && (d > 0) && (d <= ((m == 2 && leap) ? 1 : 0) + mon[m]);
+  } else {
+    return true;
+  }
+}
+
 int Value::get_int() const
 {
   switch (attr_type_) {
@@ -208,6 +255,12 @@ int Value::get_int() const
     }
     case AttrType::BOOLEANS: {
       return (int)(num_value_.bool_value_);
+    }
+    case AttrType::DATES: {
+      int d = num_value_.int_value_ % 32;
+      int m = (num_value_.int_value_ >> 5) % 16;
+      int y = num_value_.int_value_ >> 9;
+      return y * 10000 + m * 100 + d;
     }
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
@@ -236,6 +289,12 @@ float Value::get_float() const
     } break;
     case AttrType::BOOLEANS: {
       return float(num_value_.bool_value_);
+    } break;
+    case AttrType::DATES: {
+      int d = num_value_.int_value_ % 32;
+      int m = (num_value_.int_value_ >> 5) % 16;
+      int y = num_value_.int_value_ >> 9;
+      return float(y * 10000 + m * 100 + d);
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
@@ -277,6 +336,9 @@ bool Value::get_boolean() const
     } break;
     case AttrType::BOOLEANS: {
       return num_value_.bool_value_;
+    } break;
+    case AttrType::DATES: {
+      return true;
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);

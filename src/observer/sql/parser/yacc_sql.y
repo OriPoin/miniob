@@ -29,6 +29,15 @@ int yyerror(YYLTYPE *llocp, const char *sql_string, ParsedSqlResult *sql_result,
   sql_result->add_sql_node(std::move(error_sql_node));
   return 0;
 }
+int yyinvalid(YYLTYPE *llocp, const char *sql_string, ParsedSqlResult *sql_result, yyscan_t scanner, const char *msg)
+{
+  std::unique_ptr<ParsedSqlNode> error_sql_node = std::make_unique<ParsedSqlNode>(SCF_INVALID_VALUE);
+  error_sql_node->error.error_msg = msg;
+  error_sql_node->error.line = llocp->first_line;
+  error_sql_node->error.column = llocp->first_column;
+  sql_result->add_sql_node(std::move(error_sql_node));
+  return 0;
+}
 
 ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
                                              Expression *left,
@@ -89,6 +98,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         INT_T
         STRING_T
         FLOAT_T
+        DATE_T
         HELP
         EXIT
         DOT //QUOTE
@@ -135,6 +145,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %token <number> NUMBER
 %token <floats> FLOAT
 %token <string> ID
+%token <string> DATE_STR
 %token <string> SSS
 //非终结符
 
@@ -360,6 +371,7 @@ type:
     INT_T      { $$ = static_cast<int>(AttrType::INTS); }
     | STRING_T { $$ = static_cast<int>(AttrType::CHARS); }
     | FLOAT_T  { $$ = static_cast<int>(AttrType::FLOATS); }
+    | DATE_T   { $$ = static_cast<int>(AttrType::DATES); }
     ;
 insert_stmt:        /*insert   语句的语法解析树*/
     INSERT INTO ID VALUES LBRACE value value_list RBRACE 
@@ -399,6 +411,16 @@ value:
     }
     |FLOAT {
       $$ = new Value((float)$1);
+      @$ = @1;
+    }
+    |DATE_STR {
+      char *tmp = common::substr($1,1,strlen($1)-2);
+      $$ = new Value(AttrType::DATES, tmp, strlen($1));
+      if (!($$->valid()))
+      {
+        yyinvalid(&@1, sql_string, sql_result, scanner, "invalid date");
+      }
+      free(tmp);
       @$ = @1;
     }
     |SSS {
