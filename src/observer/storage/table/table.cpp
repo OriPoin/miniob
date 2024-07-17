@@ -127,6 +127,49 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
   return rc;
 }
 
+RC Table::destroy(const char *dir)
+{
+  // purge page
+  RC rc = sync();
+
+  if (rc != RC::SUCCESS)
+    return rc;
+
+  // purge meta file
+  std::string path = table_meta_file(dir, name());
+  if (unlink(path.c_str()) != 0) {
+    LOG_ERROR("Failed to remove meta file=%s, errno=%d", path.c_str(), errno);
+    return RC::FILE_REMOVE;
+  }
+
+  // close data file
+  std::string        data_file = table_data_file(dir, name());
+  BufferPoolManager &bpm       = db_->buffer_pool_manager();
+  rc                           = bpm.close_file(data_file.c_str());
+  if (OB_FAIL(rc)) {
+    LOG_ERROR("Failed to close disk buffer pool for file:%s. rc=%d:%s", data_file.c_str(), rc, strrc(rc));
+    return rc;
+  }
+  // purge data file
+  if (unlink(data_file.c_str()) != 0) {
+    LOG_ERROR("Failed to remove data file=%s, errno=%d", data_file.c_str(), errno);
+    return RC::FILE_REMOVE;
+  }
+
+  // purge index file
+  const int index_num = table_meta_.index_num();
+  for (int i = 0; i < index_num; i++) {
+    ((BplusTreeIndex *)indexes_[i])->close();
+    const IndexMeta *index_meta = table_meta_.index(i);
+    std::string      index_file = table_index_file(dir, name(), index_meta->name());
+    if (unlink(index_file.c_str()) != 0) {
+      LOG_ERROR("Failed to remove index file=%s, errno=%d", index_file.c_str(), errno);
+      return RC::FILE_REMOVE;
+    }
+  }
+  return RC::SUCCESS;
+}
+
 RC Table::open(Db *db, const char *meta_file, const char *base_dir)
 {
   // 加载元数据文件
