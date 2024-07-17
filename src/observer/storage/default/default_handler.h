@@ -82,7 +82,7 @@ public:
    * @param dbname 数据库名称
    * @param relation_name 表名
    */
-  static RC drop_table(const char *dbname, const char *relation_name);
+  RC drop_table(const char *dbname, const char *relation_name) const;
 
   Db    *find_db(const char *dbname) const;
   Table *find_table(const char *dbname, const char *table_name) const;
