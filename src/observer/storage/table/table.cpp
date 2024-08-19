@@ -13,6 +13,7 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include <climits>
+#include <cstddef>
 #include <cstring>
 #include <utility>
 
@@ -21,6 +22,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/span.h"
 #include "common/log/log.h"
 #include "common/global_context.h"
+#include "sql/parser/value.h"
 #include "storage/db/db.h"
 #include "storage/buffer/disk_buffer_pool.h"
 #include "storage/common/condition_filter.h"
@@ -487,6 +489,51 @@ RC Table::delete_record(const Record &record)
            name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
   }
   rc = record_handler_->delete_record(&record.rid());
+  return rc;
+}
+
+RC Table::update_record(const Record &record, std::vector<SetVariableSqlNode> *assignments)
+{
+  // 复制旧记录
+  RC     rc         = RC::SUCCESS;
+  Record old_record = Record();
+  Record new_record = Record();
+  get_record(record.rid(), new_record);
+  get_record(record.rid(), old_record);
+  char *record_data = new_record.data();
+  // 更新新记录
+  for (auto &assignment : *assignments) {
+    const char *value_data = assignment.value.data();
+
+    const FieldMeta *field_meta   = table_meta_.field(assignment.name.c_str());
+    int              field_offset = field_meta->offset();
+    size_t           field_len    = field_meta->len();
+    if (field_meta->type() == AttrType::CHARS) {
+      const size_t data_len = assignment.value.length();
+      if (field_len > data_len) {
+        field_len = data_len + 1;
+      }
+    }
+    std::memcpy(record_data + field_offset, value_data, field_len);
+  }
+
+  // 删除旧记录
+  rc = delete_record(record);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to delete old record: %s", strrc(rc));
+    return rc;
+  }
+  // 添加新记录
+  rc = insert_record(new_record);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to insert new record: %s", strrc(rc));
+    // 回滚，重新添加旧记录
+    RC rc2 = insert_record(old_record);
+    if (rc2 != RC::SUCCESS) {
+      LOG_WARN("failed to rollback old record: %s", strrc(rc));
+      return rc;
+    }
+  }
   return rc;
 }
 

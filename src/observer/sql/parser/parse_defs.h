@@ -40,6 +40,17 @@ struct RelAttrSqlNode
 };
 
 /**
+ * @brief 设置变量的值
+ * @ingroup SQLParser
+ * @note 当前还没有查询变量
+ */
+struct SetVariableSqlNode
+{
+  std::string name;
+  Value       value;
+};
+
+/**
  * @brief 描述比较运算符
  * @ingroup SQLParser
  */
@@ -132,10 +143,9 @@ struct DeleteSqlNode
  */
 struct UpdateSqlNode
 {
-  std::string                   relation_name;   ///< Relation to update
-  std::string                   attribute_name;  ///< 更新的字段，仅支持一个字段
-  Value                         value;           ///< 更新的值，仅支持一个字段
-  std::vector<ConditionSqlNode> conditions;
+  std::string                     relation_name;  ///< Relation to update
+  std::vector<SetVariableSqlNode> assignments;    ///< Assignments(attribute=value) to update
+  std::vector<ConditionSqlNode>   conditions;     ///< conditions to update
 };
 
 /**
@@ -213,17 +223,6 @@ struct LoadDataSqlNode
 {
   std::string relation_name;
   std::string file_name;
-};
-
-/**
- * @brief 设置变量的值
- * @ingroup SQLParser
- * @note 当前还没有查询变量
- */
-struct SetVariableSqlNode
-{
-  std::string name;
-  Value       value;
 };
 
 class ParsedSqlNode;

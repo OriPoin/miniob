@@ -135,6 +135,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   AttrInfoSqlNode *                          attr_info;
   Expression *                               expression;
   std::vector<std::unique_ptr<Expression>> * expression_list;
+  SetVariableSqlNode *                       assignment;
+  std::vector<SetVariableSqlNode> *          assignment_list;
   std::vector<Value> *                       value_list;
   std::vector<ConditionSqlNode> *            condition_list;
   std::vector<RelAttrSqlNode> *              rel_attr_list;
@@ -168,6 +170,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <relation_list>       rel_list
 %type <expression>          expression
 %type <expression_list>     expression_list
+%type <assignment>          assignment
+%type <assignment_list>     assignment_list
 %type <expression_list>     group_by
 %type <sql_node>            calc_stmt
 %type <sql_node>            select_stmt
@@ -455,19 +459,55 @@ delete_stmt:    /*  delete 语句的语法解析树*/
       free($3);
     }
     ;
+assignment_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | assignment {
+      $$ = new std::vector<SetVariableSqlNode>;
+      $$->emplace_back(*$1);
+      delete $1;
+    }
+    | assignment COMMA assignment_list {
+      if ($3 != nullptr) {
+        $$ = $3;
+      } else {
+        $$ = new std::vector<SetVariableSqlNode>;
+      }
+      $$->emplace_back(*$1);
+      delete $1;
+    }
+    ;
+assignment:
+    ID EQ value {
+      $$ = new SetVariableSqlNode;
+      $$->name = $1;
+      $$->value = *$3;
+      free($1);
+      delete $3;
+    }
+    ;
 update_stmt:      /*  update 语句的语法解析树*/
-    UPDATE ID SET ID EQ value where 
+    UPDATE ID SET assignment_list where 
     {
       $$ = new ParsedSqlNode(SCF_UPDATE);
       $$->update.relation_name = $2;
-      $$->update.attribute_name = $4;
-      $$->update.value = *$6;
-      if ($7 != nullptr) {
-        $$->update.conditions.swap(*$7);
-        delete $7;
+
+      if($4 != nullptr) {
+        for (auto assignment: *$4) {
+          $$->update.assignments.emplace_back(assignment);
+        }
+        reverse($$->update.assignments.begin(), $$->update.assignments.end());
+        
+        delete $4;
+      }
+
+      if ($5 != nullptr) {
+        $$->update.conditions.swap(*$5);
+        delete $5;
       }
       free($2);
-      free($4);
     }
     ;
 select_stmt:        /*  select 语句的语法解析树*/
