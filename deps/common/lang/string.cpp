@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#include <regex>
 
 #include <iomanip>
 
@@ -180,6 +181,15 @@ void replace(string &str, const string &old, const string &new_str)
   result += str.substr(last_index, str.length() - last_index + 1);
 
   str = result;
+}
+
+bool wildcard_string(const std::string &s, const std::string &r)
+{
+  std::string reg_str(r);
+  common::replace(reg_str, "%", ".**");
+  common::replace(reg_str, "_", ".");
+  std::regex reg(reg_str);
+  return std::regex_match(s, reg);
 }
 
 char *bin_to_hex(const char *s, const int len, char *hex_buff)

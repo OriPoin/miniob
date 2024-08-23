@@ -66,6 +66,7 @@ public:
   [[nodiscard]] std::string to_string() const;
 
   [[nodiscard]] int  compare(const Value &other) const;
+  [[nodiscard]] int  wildcard(const Value &other) const;
   [[nodiscard]] bool valid() const;
 
   [[nodiscard]] const char *data() const;

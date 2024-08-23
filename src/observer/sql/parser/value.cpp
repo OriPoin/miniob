@@ -226,6 +226,21 @@ int Value::compare(const Value &other) const
   return -1;  // TODO(unknown): return rc?
 }
 
+int Value::wildcard(const Value &other) const
+{
+  if (this->attr_type_ == other.attr_type_) {
+    switch (this->attr_type_) {
+      case AttrType::CHARS: {
+        return static_cast<int>(common::wildcard_string(this->str_value_, other.str_value_));
+      } break;
+      default: {
+        LOG_WARN("unsupported type: %d", this->attr_type_);
+      }
+    }
+  }
+  LOG_WARN("not supported");
+  return -1;  // TODO(unknown): return rc?
+}
 bool Value::valid() const
 {
   if (attr_type_ == AttrType::DATES) {

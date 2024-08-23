@@ -76,6 +76,16 @@ void merge_string(string &str, const string &delim, vector<string> &source, size
 void replace(string &str, const string &old, const string &new_str);
 
 /**
+ * 匹配子串
+ * 把使用 SQL通配符 的字符串r转换成使用 ECMAScript通配符 的语法，判断s是否符合
+ *
+ * @param s
+ * @param r
+ * @return bool
+ */
+bool wildcard_string(const std::string &s, const std::string &r);
+
+/**
  * binary to hexadecimal
  */
 char *bin_to_hex(const char *s, int len, char *hex_buff);

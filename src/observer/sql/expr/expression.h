@@ -328,6 +328,7 @@ public:
   {
     AND,
     OR,
+    NOT,
   };
 
   ConjunctionExpr(Type type, std::vector<std::unique_ptr<Expression>> &children);
