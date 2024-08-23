@@ -87,6 +87,7 @@ public:
   RC get_record(const RID &rid, Record &record);
 
   RC update_record(const Record &record, std::vector<SetVariableSqlNode> *assignments);
+  RC get_updated_record(const RID &rid, Record &record, std::vector<SetVariableSqlNode> *assignments);
 
   RC recover_insert_record(Record &record);
 

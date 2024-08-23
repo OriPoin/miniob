@@ -112,5 +112,6 @@ private:
   int32_t           trx_id_     = -1;
   bool              started_    = false;
   bool              recovering_ = false;
+  bool              updating_   = false;
   OperationSet      operations_;
 };

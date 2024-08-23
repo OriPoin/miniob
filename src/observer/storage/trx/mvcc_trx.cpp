@@ -122,6 +122,7 @@ MvccTrx::MvccTrx(MvccTrxKit &kit, LogHandler &log_handler, int32_t trx_id)
 {
   started_    = true;
   recovering_ = true;
+  updating_   = false;
 }
 
 MvccTrx::~MvccTrx() = default;
@@ -187,9 +188,30 @@ RC MvccTrx::delete_record(Table *table, Record &record)
   return RC::SUCCESS;
 }
 
-RC MvccTrx::update_record(Table * /*table*/, Record & /*record*/, std::vector<SetVariableSqlNode> * /*assignments*/)
+RC MvccTrx::update_record(Table *table, Record &record, std::vector<SetVariableSqlNode> *assignments)
 {
-  return RC::UNIMPLENMENT;
+  updating_ = true;
+  RC rc     = RC::SUCCESS;
+  // 复制旧记录
+  Record old_record = Record();
+  table->get_record(record.rid(), old_record);
+  // 得到新记录
+  Record new_record = Record();
+  table->get_updated_record(record.rid(), new_record, assignments);
+  // 删除旧记录
+  table->delete_record(record);
+  // 添加新记录
+  rc = insert_record(table, new_record);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to insert updated record into table. rc=%s", strrc(rc));
+    // 回滚，重新添加旧记录
+    RC rc2 = table->insert_record(old_record);
+    if (rc2 != RC::SUCCESS) {
+      LOG_WARN("failed to rollback old record: %s", strrc(rc));
+      return rc;
+    }
+  }
+  return rc;
 }
 
 RC MvccTrx::visit_record(Table *table, Record &record, ReadWriteMode mode)
@@ -211,7 +233,7 @@ RC MvccTrx::visit_record(Table *table, Record &record, ReadWriteMode mode)
     }
   } else if (begin_xid < 0) {
     // begin xid 小于0说明是刚插入而且没有提交的数据
-    if (-begin_xid == trx_id_) {
+    if (-begin_xid == trx_id_ && !updating_) {
       rc = RC::SUCCESS;
     } else {
       LOG_TRACE("record invisible. someone is updating this record right now. trx id=%d, begin xid=%d, end xid=%d",
@@ -286,8 +308,9 @@ RC MvccTrx::commit()
 RC MvccTrx::commit_with_trx_id(int32_t commit_xid)
 {
   // TODO(unknown): 原子性提交BUG：这里存在一个很大的问题，不能让其他事务一次性看到当前事务更新到的数据或同时看不到
-  RC rc    = RC::SUCCESS;
-  started_ = false;
+  RC rc     = RC::SUCCESS;
+  started_  = false;
+  updating_ = false;
 
   for (const Operation &operation : operations_) {
     switch (operation.type()) {
@@ -353,8 +376,9 @@ RC MvccTrx::commit_with_trx_id(int32_t commit_xid)
 
 RC MvccTrx::rollback()
 {
-  RC rc    = RC::SUCCESS;
-  started_ = false;
+  RC rc     = RC::SUCCESS;
+  started_  = false;
+  updating_ = false;
 
   for (auto &operation : std::ranges::reverse_view(operations_)) {
     switch (operation.type()) {
