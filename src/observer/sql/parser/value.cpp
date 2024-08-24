@@ -186,6 +186,40 @@ std::string Value::to_string() const
   return os.str();
 }
 
+RC Value::type_cast(Value &value, AttrType dest_type, AttrType src_type)
+{
+  if (dest_type == AttrType::CHARS) {
+    value.set_string(value.get_string().c_str());
+  } else if (dest_type == AttrType::BOOLEANS) {
+    value.set_boolean(value.get_boolean());
+  } else if (dest_type == AttrType::INTS) {
+    if (src_type == AttrType::CHARS) {
+      int new_data;
+      if (common::str_to_val(value.to_string(), new_data)) {
+        value.set_int(new_data);
+      } else {
+        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+      }
+    } else {
+      value.set_int(value.get_int());
+    }
+  } else if (dest_type == AttrType::FLOATS) {
+    if (src_type == AttrType::CHARS) {
+      float new_data;
+      if (common::str_to_val(value.to_string(), new_data)) {
+        value.set_float(new_data);
+      } else {
+        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+      }
+    } else {
+      value.set_float(value.get_float());
+    }
+  } else {
+    return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+  }
+  return RC::SUCCESS;
+}
+
 int Value::compare(const Value &other) const
 {
   if (this->attr_type_ == other.attr_type_) {
@@ -219,6 +253,27 @@ int Value::compare(const Value &other) const
         reinterpret_cast<const char *>(&this_data), reinterpret_cast<const char *>(&other.num_value_.float_value_));
   } else if (this->attr_type_ == AttrType::FLOATS && other.attr_type_ == AttrType::INTS) {
     float other_data = other.num_value_.int_value_;
+    return common::compare_float(
+        reinterpret_cast<const char *>(&this->num_value_.float_value_), reinterpret_cast<const char *>(&other_data));
+  } else if (this->attr_type_ == AttrType::CHARS && other.attr_type_ == AttrType::INTS) {
+    int this_data;
+    common::str_to_val(this->str_value_, this_data);
+    return common::compare_int(
+        reinterpret_cast<const char *>(&this_data), reinterpret_cast<const char *>(&other.num_value_.int_value_));
+  } else if (this->attr_type_ == AttrType::INTS && other.attr_type_ == AttrType::CHARS) {
+    float this_data, other_data;
+    this_data = this->num_value_.int_value_;
+    common::str_to_val(other.str_value_, other_data);
+    return common::compare_float(
+        reinterpret_cast<const char *>(&this_data), reinterpret_cast<const char *>(&other_data));
+  } else if (this->attr_type_ == AttrType::CHARS && other.attr_type_ == AttrType::FLOATS) {
+    float this_data;
+    common::str_to_val(this->str_value_, this_data);
+    return common::compare_float(
+        reinterpret_cast<const char *>(&this_data), reinterpret_cast<const char *>(&other.num_value_.float_value_));
+  } else if (this->attr_type_ == AttrType::FLOATS && other.attr_type_ == AttrType::CHARS) {
+    float other_data;
+    common::str_to_val(other.str_value_, other_data);
     return common::compare_float(
         reinterpret_cast<const char *>(&this->num_value_.float_value_), reinterpret_cast<const char *>(&other_data));
   }

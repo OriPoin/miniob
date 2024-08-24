@@ -21,7 +21,7 @@ InsertStmt::InsertStmt(Table *table, const Value *values, int value_amount)
     : table_(table), values_(values), value_amount_(value_amount)
 {}
 
-RC InsertStmt::create(Db *db, const InsertSqlNode &insert_sql, Stmt *&stmt)
+RC InsertStmt::create(Db *db, InsertSqlNode &insert_sql, Stmt *&stmt)
 {
   const char *table_name = insert_sql.relation_name.c_str();
   if (nullptr == db || nullptr == table_name || insert_sql.values.empty()) {
@@ -38,7 +38,7 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &insert_sql, Stmt *&stmt)
   }
 
   // check the fields number
-  const Value     *values     = insert_sql.values.data();
+  Value           *values     = insert_sql.values.data();
   const int        value_num  = static_cast<int>(insert_sql.values.size());
   const TableMeta &table_meta = table->table_meta();
   const int        field_num  = table_meta.field_num() - table_meta.sys_field_num();
@@ -53,10 +53,12 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &insert_sql, Stmt *&stmt)
     const FieldMeta *field_meta = table_meta.field(i + sys_field_num);
     const AttrType   field_type = field_meta->type();
     const AttrType   value_type = values[i].attr_type();
-    if (field_type != value_type) {  // TODO(unknown): try to convert the value type to field type
-      LOG_WARN("field type mismatch. table=%s, field=%s, field type=%d, value_type=%d",
-          table_name, field_meta->name(), field_type, value_type);
-      return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    if (field_type != value_type) {
+      if (RC::SUCCESS != Value::type_cast(values[i], field_type, value_type)) {
+        LOG_WARN("field type mismatch. table=%s, field=%s, field type=%d, value_type=%d",
+                                      table_name, field_meta->name(), field_type, value_type);
+        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+      }
     }
   }
 

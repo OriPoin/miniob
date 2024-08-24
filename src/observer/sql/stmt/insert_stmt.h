@@ -32,7 +32,7 @@ public:
 
   [[nodiscard]] StmtType type() const override { return StmtType::INSERT; }
 
-  static RC create(Db *db, const InsertSqlNode &insert_sql, Stmt *&stmt);
+  static RC create(Db *db, InsertSqlNode &insert_sql, Stmt *&stmt);
 
   [[nodiscard]] Table       *table() const { return table_; }
   [[nodiscard]] const Value *values() const { return values_; }

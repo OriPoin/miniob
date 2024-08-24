@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include "common/rc.h"
 #include <cstddef>
 #include <string>
 
@@ -63,7 +64,12 @@ public:
   void set_date(const char *s, size_t len = 0);
   void set_value(const Value &value);
 
+  /**
+   * type cast
+   *
+   */
   [[nodiscard]] std::string to_string() const;
+  static RC                 type_cast(Value &value, AttrType dest_type, AttrType src_type);
 
   [[nodiscard]] int  compare(const Value &other) const;
   [[nodiscard]] int  wildcard(const Value &other) const;
